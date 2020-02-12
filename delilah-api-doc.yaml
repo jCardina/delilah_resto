@@ -10,6 +10,7 @@ servers:
  
 paths:
   /products:
+  
     get:
       summary: Returns a list of products.
       responses:
@@ -20,7 +21,22 @@ paths:
               schema: 
                 type: array
                 items: 
-                  type: string
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                    name:
+                      type: string
+                    keyword:
+                      type: string
+                    price:
+                      type: number
+                    photoUrl:
+                      type: string
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
                   
     post:
       summary: Creates a product.
@@ -33,6 +49,8 @@ paths:
               properties:
                 name:
                   type: string
+                keyword:
+                  type: string
                 price:
                   type: number
                 photoUrl:
@@ -40,8 +58,27 @@ paths:
       responses: 
         '201':
           description: Product created
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  id:
+                    type: number
+                  name:
+                    type: string
+                  keyword:
+                    type: string
+                  price:
+                    type: number
+                  photoUrl:
+                    type: string
+        '400':
+          description: Bad request
         '409':
           description: Product already exist
+        '500':
+          description: Internal server error
           
                   
   /products/{productId}:
@@ -58,9 +95,27 @@ paths:
       responses: 
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                  name:
+                    type: string
+                  keyword:
+                    type: string
+                  price:
+                    type: number
+                  photoUrl:
+                    type: string
+        '400':
+          description: Bad request
         '404':
           description: Product not found
-          
+        '500':
+          description: Internal server error
           
     put:
       summary: Modifies a product by ID.
@@ -81,16 +136,36 @@ paths:
               properties:
                 name:
                   type: string
+                keyword:
+                  type: string
                 price:
                   type: number
                 photoUrl:
                   type: string
       responses: 
         '200':
-          description: Product modified
+          description: Modified product
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                  name:
+                    type: string
+                  keyword:
+                    type: string
+                  price:
+                    type: number
+                  photoUrl:
+                    type: string
+        '400':
+          description: Bad request
         '404':
           description: Product not found
-          
+        '500':
+          description: Internal server error
           
     delete:
       summary: Deletes a product by ID.
@@ -105,7 +180,11 @@ paths:
       responses: 
         '204':
           description: Product deleted
+        '400':
+          description: Bad request
         '404':
           description: Product not found
+        '500':
+          description: Internal server error
           
  
