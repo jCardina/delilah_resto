@@ -1,0 +1,111 @@
+openapi: 3.0.0
+
+info:
+  title: Delilah Resto API
+  description: Food delivery
+  version: 1.0.0
+  
+servers:
+  - url: https://api.delilah.com/v1
+ 
+paths:
+  /products:
+    get:
+      summary: Returns a list of products.
+      responses:
+        '200':
+          description: JSON array of products
+          content:
+            application/json:
+              schema: 
+                type: array
+                items: 
+                  type: string
+                  
+    post:
+      summary: Creates a product.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                price:
+                  type: number
+                photoUrl:
+                  type: string
+      responses: 
+        '201':
+          description: Product created
+        '409':
+          description: Product already exist
+          
+                  
+  /products/{productId}:
+    get:
+      summary: Returns a product by ID.
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type : integer
+            format: int64
+            minimum: 1
+      responses: 
+        '200':
+          description: OK
+        '404':
+          description: Product not found
+          
+          
+    put:
+      summary: Modifies a product by ID.
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type : integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                price:
+                  type: number
+                photoUrl:
+                  type: string
+      responses: 
+        '200':
+          description: Product modified
+        '404':
+          description: Product not found
+          
+          
+    delete:
+      summary: Deletes a product by ID.
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type : integer
+            format: int64
+            minimum: 1
+      responses: 
+        '204':
+          description: Product deleted
+        '404':
+          description: Product not found
+          
+ 
