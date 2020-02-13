@@ -7,11 +7,21 @@ info:
   
 servers:
   - url: https://api.delilah.com/v1
+  
+tags:
+- name: "Products"
+  description: "Operations about products"
+- name: "Users"
+  description: "Operations about users"
+- name: "Orders"
+  description: "Operations about orders"
  
 paths:
+
   /products:
   
     get:
+      tags: ["Products"]
       summary: Returns a list of products.
       responses:
         '200':
@@ -39,6 +49,7 @@ paths:
           description: Internal server error
                   
     post:
+      tags: ["Products"]
       summary: Creates a product.
       requestBody:
         required: true
@@ -83,6 +94,7 @@ paths:
                   
   /products/{productId}:
     get:
+      tags: ["Products"]
       summary: Returns a product by ID.
       parameters:
         - name: productId
@@ -118,6 +130,7 @@ paths:
           description: Internal server error
           
     put:
+      tags: ["Products"]
       summary: Modifies a product by ID.
       parameters:
         - name: productId
@@ -168,6 +181,7 @@ paths:
           description: Internal server error
           
     delete:
+      tags: ["Products"]
       summary: Deletes a product by ID.
       parameters:
         - name: productId
