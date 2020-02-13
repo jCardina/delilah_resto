@@ -200,5 +200,147 @@ paths:
           description: Product not found
         '500':
           description: Internal server error
+    
+    
+  /users:
+  
+    get: #hace falta?
+      tags: ["Users"]
+      summary: Returns a list of users.
+      responses:
+        '200':
+          description: JSON array of users
+          content:
+            application/json:
+              schema: 
+                type: array
+                items: 
+                  type: object
+                  properties: #que datos devolver?
+                    id:
+                      type: number
+                    name:
+                      type: string
+                    userName:
+                      type: string
+                   # email:
+                    #  type: string
+                   # address:
+                    #  type: string
+                    #phoneNumber:
+                     # type: number
+                    admin:
+                      type: boolean
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+          
+    post:
+      tags: ["Users"]
+      summary: Creates a user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                userName:
+                  type: string
+                email:
+                  type: string
+                address:
+                  type: string
+                phoneNumber:
+                  type: number
+                password:
+                  type: string
+      responses: 
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  id:
+                    type: number
+                  name:
+                    type: string
+                  userName:
+                    type: string
+                  email:
+                    type: string
+                  address:
+                    type: string
+                  phoneNumber:
+                    type: number
+                  #password: ?
+                   # type: string
+                  admin:
+                    type: boolean
+                    default: false
+                  
+        '400':
+          description: Bad request
+        '409':
+          description: Product already exist
+        '500':
+          description: Internal server error
+          
+          
+  /users/admin:
+  
+    post:
+      tags: ["Users"]
+      summary: Creates an admin user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                userName:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses: 
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  id:
+                    type: number
+                  name:
+                    type: string
+                  userName:
+                    type: string
+                  email:
+                    type: string
+                  #password: ?
+                   # type: string
+                  admin:
+                    type: boolean
+                    default: true
+                  
+        '400':
+          description: Bad request
+        '409':
+          description: Product already exist
+        '500':
+          description: Internal server error
+    
+  
           
  
