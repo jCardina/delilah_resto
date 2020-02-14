@@ -21,8 +21,17 @@ paths:
   /products:
   
     get:
-      tags: ["Products"]
+      tags:
+        - "Products"
       summary: Returns a list of products.
+      security:
+        - tokenAuthorization: []
+      parameters:
+        - in: header
+          name: token
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: JSON array of products
@@ -45,12 +54,23 @@ paths:
                       type: string
         '400':
           description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
         '500':
           description: Internal server error
                   
     post:
-      tags: ["Products"]
+      tags:
+        - "Products"
       summary: Creates a product.
+      security:
+        - tokenAuthorization: []
+      parameters:
+        - in: header
+          name: token
+          required: true
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -86,16 +106,21 @@ paths:
                     type: string
         '400':
           description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
         '409':
-          description: Product already exist
+          description: Product already exists
         '500':
           description: Internal server error
           
                   
   /products/{productId}:
     get:
-      tags: ["Products"]
+      tags:
+        - "Products"
       summary: Returns a product by ID.
+      security:
+        - tokenAuthorization: []
       parameters:
         - name: productId
           in: path
@@ -104,6 +129,11 @@ paths:
             type : integer
             format: int64
             minimum: 1
+        - in: header
+          name: token
+          required: true
+          schema:
+            type: string
       responses: 
         '200':
           description: OK
@@ -124,14 +154,19 @@ paths:
                     type: string
         '400':
           description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
         '404':
           description: Product not found
         '500':
           description: Internal server error
           
     put:
-      tags: ["Products"]
+      tags:
+        - "Products"
       summary: Modifies a product by ID.
+      security:
+        - tokenAuthorization: []
       parameters:
         - name: productId
           in: path
@@ -140,6 +175,11 @@ paths:
             type : integer
             format: int64
             minimum: 1
+        - in: header
+          name: token
+          required: true
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -175,14 +215,19 @@ paths:
                     type: string
         '400':
           description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
         '404':
           description: Product not found
         '500':
           description: Internal server error
           
     delete:
-      tags: ["Products"]
+      tags:
+        - "Products"
       summary: Deletes a product by ID.
+      security:
+        - tokenAuthorization: []
       parameters:
         - name: productId
           in: path
@@ -191,11 +236,18 @@ paths:
             type : integer
             format: int64
             minimum: 1
+        - in: header
+          name: token
+          required: true
+          schema:
+            type: string
       responses: 
         '204':
           description: Product deleted
         '400':
           description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
         '404':
           description: Product not found
         '500':
@@ -204,9 +256,18 @@ paths:
     
   /users:
   
-    get: #hace falta?
-      tags: ["Users"]
+    get:
+      tags:
+        - "Users"
       summary: Returns a list of users.
+      security:
+        - tokenAuthorization: []
+      parameters:
+        - in: header
+          name: token
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: JSON array of users
@@ -216,28 +277,23 @@ paths:
                 type: array
                 items: 
                   type: object
-                  properties: #que datos devolver?
+                  properties:
                     id:
                       type: number
-                    name:
-                      type: string
                     userName:
                       type: string
-                   # email:
-                    #  type: string
-                   # address:
-                    #  type: string
-                    #phoneNumber:
-                     # type: number
                     admin:
                       type: boolean
         '400':
           description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
         '500':
           description: Internal server error
           
     post:
-      tags: ["Users"]
+      tags:
+        - "Users"
       summary: Creates a user.
       requestBody:
         required: true
@@ -278,8 +334,6 @@ paths:
                     type: string
                   phoneNumber:
                     type: number
-                  #password: ?
-                   # type: string
                   admin:
                     type: boolean
                     default: false
@@ -287,7 +341,7 @@ paths:
         '400':
           description: Bad request
         '409':
-          description: Product already exist
+          description: User already exists
         '500':
           description: Internal server error
           
@@ -295,8 +349,17 @@ paths:
   /users/admin:
   
     post:
-      tags: ["Users"]
+      tags:
+        - "Users"
+      security:
+        - ApiKeyAuthorization: [] 
       summary: Creates an admin user.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type : string
       requestBody:
         required: true
         content:
@@ -328,19 +391,94 @@ paths:
                     type: string
                   email:
                     type: string
-                  #password: ?
-                   # type: string
                   admin:
                     type: boolean
                     default: true
                   
         '400':
           description: Bad request
+        '401':
+          description: API key is missing or invalid
         '409':
-          description: Product already exist
+          description: User already exists
+        '500':
+          description: Internal server error
+        
+          
+  /users/login:
+    
+    post:
+      tags:
+        - "Users"
+      summary: User login.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+                oneOf:
+                - $ref: '#/components/schemas/userLogin'
+                - $ref: '#/components/schemas/emailLogin'
+            example:
+              username or email: user
+              password: password
+                  
+      responses: 
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties: #revisar
+                  token:
+                    type: string
+                  id:
+                    type: number
+                  userName:
+                    type: string
+                  admin:
+                    type: boolean
+                  
+        '400':
+          description: Bad request / wrong user or password
         '500':
           description: Internal server error
     
   
+components:
+
+  schemas:
+  
+    userLogin:
+      type: object
+      properties:
+        userName:
+          type: string
+        password:
+          type: string
+          
+    emailLogin:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+          
+  securitySchemes:
+    ApiKeyAuthorization:
+      type: apiKey
+      in: query
+      name: API-KEY
+      
+    tokenAuthorization:
+      type: http
+      scheme: bearer
+      
+  responses:
+    tokenMissing:
+      description: Token missing or invalid
+    
           
  
