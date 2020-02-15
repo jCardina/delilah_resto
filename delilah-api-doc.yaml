@@ -25,10 +25,10 @@ paths:
         - "Products"
       summary: Returns a list of products.
       security:
-        - tokenAuthorization: []
+        - tokenAuthorizationGeneral: []
       parameters:
-        - in: header
-          name: token
+        - name: token
+          in: header
           required: true
           schema:
             type: string
@@ -64,10 +64,11 @@ paths:
         - "Products"
       summary: Creates a product.
       security:
-        - tokenAuthorization: []
+        - tokenAuthorizationAdmin: []
       parameters:
-        - in: header
-          name: token
+        - name: token
+          in: header
+          description: "Role required: Admin"
           required: true
           schema:
             type: string
@@ -120,7 +121,7 @@ paths:
         - "Products"
       summary: Returns a product by ID.
       security:
-        - tokenAuthorization: []
+        - tokenAuthorizationGeneral: []
       parameters:
         - name: productId
           in: path
@@ -166,7 +167,7 @@ paths:
         - "Products"
       summary: Modifies a product by ID.
       security:
-        - tokenAuthorization: []
+        - tokenAuthorizationAdmin: []
       parameters:
         - name: productId
           in: path
@@ -175,8 +176,9 @@ paths:
             type : integer
             format: int64
             minimum: 1
-        - in: header
-          name: token
+        - name: token
+          in: header
+          description: "Role required: Admin"
           required: true
           schema:
             type: string
@@ -227,7 +229,7 @@ paths:
         - "Products"
       summary: Deletes a product by ID.
       security:
-        - tokenAuthorization: []
+        - tokenAuthorizationAdmin: []
       parameters:
         - name: productId
           in: path
@@ -236,8 +238,9 @@ paths:
             type : integer
             format: int64
             minimum: 1
-        - in: header
-          name: token
+        - name: token
+          in: header
+          description: "Role required: Admin"
           required: true
           schema:
             type: string
@@ -261,10 +264,11 @@ paths:
         - "Users"
       summary: Returns a list of users.
       security:
-        - tokenAuthorization: []
+        - tokenAuthorizationAdmin: []
       parameters:
-        - in: header
-          name: token
+        - name: token
+          in: header
+          description: "Role required: Admin"
           required: true
           schema:
             type: string
@@ -282,6 +286,8 @@ paths:
                       type: number
                     userName:
                       type: string
+                      minLength: 6
+                      maxLength: 18
                     admin:
                       type: boolean
         '400':
@@ -306,6 +312,8 @@ paths:
                   type: string
                 userName:
                   type: string
+                  minLength: 6
+                  maxLength: 18
                 email:
                   type: string
                 address:
@@ -314,6 +322,7 @@ paths:
                   type: number
                 password:
                   type: string
+                  minLength: 6
       responses: 
         '201':
           description: User created
@@ -371,10 +380,13 @@ paths:
                   type: string
                 userName:
                   type: string
+                  minLength: 6
+                  maxLength: 18
                 email:
                   type: string
                 password:
                   type: string
+                  minLength: 6
       responses: 
         '201':
           description: User created
@@ -433,17 +445,207 @@ paths:
                 properties: #revisar
                   token:
                     type: string
-                  id:
-                    type: number
-                  userName:
-                    type: string
-                  admin:
-                    type: boolean
+                 # id:
+                  #  type: number
+                  #userName:
+                   # type: string
+                  #admin:
+                   # type: boolean
                   
         '400':
           description: Bad request / wrong user or password
         '500':
           description: Internal server error
+          
+                  
+  /users/{userId}:
+    get:
+      tags:
+        - "Users"
+      summary: Returns a user by ID. (Same user only)
+      security:
+        - tokenAuthorizationGeneral: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type : integer
+            format: int64
+            minimum: 1
+        - name: token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses: 
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                  name:
+                    type: string
+                  userName:
+                    type: string
+                  email:
+                    type: string
+                  address:
+                    type: string
+                  phoneNumber:
+                    type: number
+                  admin:
+                    type: boolean
+                    default: false
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+          
+    patch: #put?
+      tags:
+        - "Users"
+      summary: Modifies a user by ID.
+      security:
+        - tokenAuthorizationGeneral: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type : integer
+            format: int64
+            minimum: 1
+        - name: token
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                userName:
+                  type: string
+                  minLength: 6
+                  maxLength: 18
+                email:
+                  type: string
+                address:
+                  type: string
+                phoneNumber:
+                  type: number
+                password:
+                  type: string
+                  minLength: 6
+      responses: 
+        '200':
+          description: Modified user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                  name:
+                    type: string
+                  userName:
+                    type: string
+                  email:
+                    type: string
+                  address:
+                    type: string
+                  phoneNumber:
+                    type: number
+                  admin:
+                    type: boolean
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+          
+    delete:
+      tags:
+        - "Users"
+      summary: Deletes a user by ID.
+      security:
+        - tokenAuthorizationGeneral: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type : integer
+            format: int64
+            minimum: 1
+        - name: token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses: 
+        '204':
+          description: User deleted
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+          
+          
+  /orders:
+  
+    get:
+      tags:
+        - "Orders"
+      summary: Returns a list of orders.
+      security:
+        - tokenAuthorizationAdmin: []
+      parameters:
+        - name: token
+          in: header
+          description: "Role required: Admin"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: JSON array of orders
+          content:
+            application/json:
+              schema: 
+                type: array
+                items:
+                  $ref: '#/components/schemas/orderData'
+                  
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '500':
+          description: Internal server error
+    
     
   
 components:
@@ -455,8 +657,11 @@ components:
       properties:
         userName:
           type: string
+          minLength: 6
+          maxLength: 18
         password:
           type: string
+          minLength: 6
           
     emailLogin:
       type: object
@@ -465,6 +670,64 @@ components:
           type: string
         password:
           type: string
+          minLength: 6
+          
+    orderData:
+      type: object
+      properties:
+        orderId:
+          type: number
+        products: #revisar
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+             # name:
+              #  type: string
+              #keyword:
+               # type: string
+              #price:
+               # type: number
+              quantity:
+                type: integer
+                format: int64
+                minimum: 1
+              #photoUrl:
+               # type: string
+        total:
+          type: number
+        userId:
+          type: number
+        #user: #revisar
+          #type: object
+          #properties:
+            #id:
+             # type: number
+            #name:
+             # type: string
+            #userName:
+             # type: string
+            #email:
+             # type: string
+            #address:
+             # type: string
+            #phoneNumber:
+             # type: number
+        paymentMethod:
+          type: string
+        timeStamp:
+          type: string
+        status:
+          type: string
+          enum:
+            - nuevo
+            - confirmado
+            - preparando
+            - enviando
+            - entregado
+        
           
   securitySchemes:
     ApiKeyAuthorization:
@@ -472,13 +735,20 @@ components:
       in: query
       name: API-KEY
       
-    tokenAuthorization:
+    tokenAuthorizationAdmin:
       type: http
       scheme: bearer
+      description: "Role required: Admin"
+      
+    tokenAuthorizationGeneral:
+      type: http
+      scheme: bearer
+      
       
   responses:
     tokenMissing:
       description: Token missing or invalid
+      
     
           
  
