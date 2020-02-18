@@ -111,6 +111,23 @@ server.get('/orders', (request, response) => {
     response.json(orders);
 });
 
+server.get('/users/:id/orders', (request, response) => {
+    const id = request.params.id;
+
+    let userOrders = []
+    
+    orders.forEach(element => {
+        if(element.userId == id) {
+            userOrders.push(element);
+        }
+    });
+
+    response.json(userOrders);
+    
+});
+
+
+
 
 //------------base de datos provisoria
 
