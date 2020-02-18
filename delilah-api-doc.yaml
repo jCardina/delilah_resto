@@ -899,6 +899,8 @@ components:
           type: string
         timeStamp:
           type: string
+        date:
+          type: string
         status:
           type: string
 
