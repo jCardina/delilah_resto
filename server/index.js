@@ -3,6 +3,9 @@ const bodyParser = require('body-parser');
 const moment = require('moment');
 const server = express();
 
+let date = moment().format("DD-MM-YYYY");
+let time = moment().format("HH:mm");
+
 server.use(bodyParser.json());
 
 server.listen(3000, () => {
@@ -104,12 +107,125 @@ server.get('/users', (request, response) => {
     response.json(usersPublic);
 });
 
+server.get('/users/:id', (request, response) => {
 
-//---pedidos
+    const id = request.params.id;
+    users.forEach (element => {
+    
+        if(element.id == id) {
+
+            let userData = {
+                id: element.id,
+                name: element.name,
+                userName: element.userName,
+                email: element.email,
+                address: element.address,
+                phoneNumber: element.phoneNumber,
+                admin: element.admin
+            }
+    
+            response.json(userData);
+        }
+    });
+});
+
+server.patch('/users/:id', (request, response) => { //o patch? // 204 para put?
+    const id = request.params.id;
+    let data = request.body;
+
+    users.forEach(element => {
+        if(element.id == id) {
+
+            if(data.name) {
+                element.name = data.name;
+            }
+            if(data.userName) {
+            element.userName = data.userName;
+            }
+            if(data.email) {
+            element.email = data.email;
+            }
+            if(data.address) {
+            element.address = data.address;
+            }
+            if(data.phoneNumber) {
+            element.phoneNumber = data.phoneNumber;
+            }
+            if(data.password) {
+            element.password = data.password;
+            }
+            
+            let userData = {
+                id: element.id,
+                name: element.name,
+                userName: element.userName,
+                email: element.email,
+                address: element.address,
+                phoneNumber: element.phoneNumber,
+            }
+
+            response.json(userData);
+            console.log(users);
+            //sacar que devuelva password
+        }
+    });
+    
+});
+
+server.delete('/users/:id', (request, response) => {
+    const id = request.params.id;
+    
+    users.forEach(element => {
+        if(element.id == id) {
+
+            let index = users.indexOf(element);
+
+            users.splice(index,1);
+
+            console.log(users);
+
+            response.statusCode = 204;
+            response.send();
+        }
+    });
+    
+});
+
+//post cliente y admin / login -->sacar login de users path?
+
+
+//-----------------pedidos
 
 server.get('/orders', (request, response) => {
     response.json(orders);
 });
+
+
+server.post('/orders', (request, response) => {
+    let {products, total, userId, paymentMethod} = request.body;
+    
+    let lastAssignedId = orders[orders.length - 1].orderId;
+    let newID = lastAssignedId + 1;
+
+    let newOrder = {
+        orderId: newID,
+        products: products,
+        total: total,
+        userId: userId,
+        paymentMethod: paymentMethod,
+        timeStamp: time,
+        date: date,
+        status: "nuevo"
+    };
+
+    orders.push(newOrder);
+    console.log(orders);
+
+    response.statusCode = 201;
+    response.json(newOrder);
+});
+
+
 
 server.get('/users/:id/orders', (request, response) => {
     const id = request.params.id;
@@ -123,6 +239,31 @@ server.get('/users/:id/orders', (request, response) => {
     });
 
     response.json(userOrders);
+    
+});
+
+server.get('/orders/:id', (request, response) => {
+    const id = request.params.id;
+    
+    orders.forEach(element => {
+        if(element.orderId == id) {
+            response.json(element);
+        }
+    });
+    
+});
+
+server.patch('/orders/:id', (request, response) => {
+    const id = request.params.id;
+    const status = request.query;
+    
+    orders.forEach(element => {
+        if(element.orderId == id) {
+            element.status = status.status;
+            console.log(orders);
+            response.json(element);
+        }
+    });
     
 });
 
@@ -200,7 +341,7 @@ let orders = [
         userId: 2,
         paymentMethod: "efectivo",
         timeStamp: "18:29",
-        date: "10/02/2020",
+        date: "10-02-2020",
         status: "confirmado"
       },
       {
@@ -219,7 +360,7 @@ let orders = [
         userId: 3,
         paymentMethod: "tarjeta",
         timeStamp: "17:50",
-        date: "10/02/2020",
+        date: "10-02-2020",
         status: "nuevo"
       }
 ];
