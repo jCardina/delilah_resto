@@ -1,7 +1,15 @@
 const express = require('express');
+const server = express();
 const bodyParser = require('body-parser');
 const moment = require('moment');
-const server = express();
+const jwt = require('jsonwebtoken');
+
+//npm i cors
+//require cors
+//server.use(cors)
+
+const signature = "token_Generator_3402921GtFDnL";
+
 
 let date = moment().format("DD-MM-YYYY");
 let time = moment().format("HH:mm");
@@ -134,7 +142,7 @@ server.patch('/users/:id', (request, response) => { //o patch? // 204 para put?
     let data = request.body;
 
     users.forEach(element => {
-        if(element.id == id) {
+        if(element.id == id) { //modificar para que sean todos obligatorios salvo password
 
             if(data.name) {
                 element.name = data.name;
@@ -154,7 +162,7 @@ server.patch('/users/:id', (request, response) => { //o patch? // 204 para put?
             if(data.password) {
             element.password = data.password;
             }
-            
+
             let userData = {
                 id: element.id,
                 name: element.name,
@@ -166,7 +174,7 @@ server.patch('/users/:id', (request, response) => { //o patch? // 204 para put?
 
             response.json(userData);
             console.log(users);
-            //sacar que devuelva password
+           
         }
     });
     
