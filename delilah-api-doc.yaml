@@ -417,9 +417,9 @@ paths:
           description: Internal server error
         
           
-  /users/login:
+  /login:
     
-    post: #cambiar a get? endpoint logout?
+    post: #cambiar solo por user para las dos opciones
       tags:
         - "Users"
       summary: User login.
@@ -619,7 +619,6 @@ paths:
   /users/{userId}/orders:
     get:
       tags:
-        - "Users"
         - "Orders"
       summary: Returns a list of orders by user.
       description: "This can only be done by the logged in user."
