@@ -25,7 +25,7 @@ paths:
         - "Products"
       summary: Returns a list of products.
       security:
-        - tokenAuthorizationGeneral: []
+        - tokenAuthorization: []
       parameters:
         - name: token
           in: header
@@ -64,7 +64,7 @@ paths:
         - "Products"
       summary: Creates a product.
       security:
-        - tokenAuthorizationAdmin: []
+        - tokenAuthorization: []
       parameters:
         - name: token
           in: header
@@ -116,12 +116,12 @@ paths:
           
                   
   /products/{productId}:
-    get:
+    get: #hace falta?
       tags:
         - "Products"
       summary: Returns a product by ID.
       security:
-        - tokenAuthorizationGeneral: []
+        - tokenAuthorization: []
       parameters:
         - name: productId
           in: path
@@ -167,7 +167,7 @@ paths:
         - "Products"
       summary: Modifies a product by ID.
       security:
-        - tokenAuthorizationAdmin: []
+        - tokenAuthorization: []
       parameters:
         - name: productId
           in: path
@@ -229,7 +229,7 @@ paths:
         - "Products"
       summary: Deletes a product by ID.
       security:
-        - tokenAuthorizationAdmin: []
+        - tokenAuthorization: []
       parameters:
         - name: productId
           in: path
@@ -264,7 +264,7 @@ paths:
         - "Users"
       summary: Returns a list of users.
       security:
-        - tokenAuthorizationAdmin: []
+        - tokenAuthorization: []
       parameters:
         - name: token
           in: header
@@ -284,12 +284,19 @@ paths:
                   properties:
                     id:
                       type: number
+                    name:
+                      type: string
                     userName:
                       type: string
-                      minLength: 6
-                      maxLength: 18
+                    email:
+                      type: string
+                    address:
+                      type: string
+                    phoneNumber:
+                      type: number
                     admin:
                       type: boolean
+                      default: false
         '400':
           description: Bad request
         '401':
@@ -361,14 +368,15 @@ paths:
       tags:
         - "Users"
       security:
-        - ApiKeyAuthorization: [] 
+        - tokenAuthorization: []
       summary: Creates an admin user.
       parameters:
-        - name: api_key
-          in: query
+        - name: token
+          in: header
+          description: "Role required: Admin"
           required: true
           schema:
-            type : string
+            type: string
       requestBody:
         required: true
         content:
@@ -419,7 +427,7 @@ paths:
           
   /login:
     
-    post: #cambiar solo por user para las dos opciones
+    post:
       tags:
         - "Users"
       summary: User login.
@@ -428,12 +436,12 @@ paths:
         content:
           application/json:
             schema:
-                oneOf:
-                - $ref: '#/components/schemas/userLogin'
-                - $ref: '#/components/schemas/emailLogin'
-            example:
-              username or email: user
-              password: password
+              type: object
+              properties:
+                user:
+                  type: string
+                password:
+                  type: string
                   
       responses: 
         '200':
@@ -447,10 +455,6 @@ paths:
                     type: string
                   userId:
                     type: number
-                  #userName:
-                   # type: string
-                  #admin:
-                   # type: boolean
                   
         '400':
           description: Bad request / wrong user or password
@@ -463,9 +467,9 @@ paths:
       tags:
         - "Users"
       summary: Returns a user by ID.
-      description: "This can only be done by the logged in user or an Admin."
+      description: "This can only be done by the logged in user."
       security:
-        - tokenAuthorizationGeneral: []
+        - tokenAuthorization: []
       parameters:
         - name: userId
           in: path
@@ -511,13 +515,13 @@ paths:
         '500':
           description: Internal server error
           
-    patch: #put?
+    patch: #put? #arreglar/definir que es obligatorio
       tags:
         - "Users"
       summary: Modifies a user by ID.
       description: "This can only be done by the logged in user."
       security:
-        - tokenAuthorizationGeneral: []
+        - tokenAuthorization: []
       parameters:
         - name: userId
           in: path
@@ -590,7 +594,7 @@ paths:
       summary: Deletes a user by ID.
       description: "This can only be done by the logged in user."
       security:
-        - tokenAuthorizationGeneral: []
+        - tokenAuthorization: []
       parameters:
         - name: userId
           in: path
@@ -623,7 +627,7 @@ paths:
       summary: Returns a list of orders by user.
       description: "This can only be done by the logged in user."
       security:
-        - tokenAuthorizationGeneral: []
+        - tokenAuthorization: []
       parameters:
         - name: userId
           in: path
@@ -660,12 +664,12 @@ paths:
           
   /orders:
   
-    get:
+    get: #que tiene que devolver?
       tags:
         - "Orders"
       summary: Returns a list of orders.
       security:
-        - tokenAuthorizationAdmin: []
+        - tokenAuthorization: []
       parameters:
         - name: token
           in: header
@@ -696,7 +700,7 @@ paths:
       summary: Creates an order.
       description: "This can only be done by the logged in user."
       security:
-        - tokenAuthorizationGeneral: []
+        - tokenAuthorization: []
       parameters:
         - name: token
           in: header
@@ -748,9 +752,9 @@ paths:
       tags:
         - "Orders"
       summary: Returns an order by ID.
-      description: "This can only be done by the logged in user or an Admin."
+      description: "This can only be done by the logged in user."
       security:
-        - tokenAuthorizationGeneral: []
+        - tokenAuthorization: []
       parameters:
         - name: orderId
           in: path
@@ -787,7 +791,7 @@ paths:
         - "Orders"
       summary: Modifies order status by ID.
       security:
-        - tokenAuthorizationAdmin: []
+        - tokenAuthorization: []
       parameters:
         - name: orderId
           in: path
@@ -868,26 +872,6 @@ paths:
 components:
 
   schemas:
-  
-    userLogin:
-      type: object
-      properties:
-        userName:
-          type: string
-          minLength: 6
-          maxLength: 18
-        password:
-          type: string
-          minLength: 6
-          
-    emailLogin:
-      type: object
-      properties:
-        email:
-          type: string
-        password:
-          type: string
-          minLength: 6
           
     orderData:
       type: object
@@ -949,12 +933,8 @@ components:
       in: query
       name: API-KEY
       
-    tokenAuthorizationAdmin:
-      type: http
-      scheme: bearer
-      description: "Role required: Admin"
       
-    tokenAuthorizationGeneral:
+    tokenAuthorization:
       type: http
       scheme: bearer
       
