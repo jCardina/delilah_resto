@@ -3,29 +3,38 @@ const server = express();
 const bodyParser = require('body-parser');
 const moment = require('moment');
 const jwt = require('jsonwebtoken');
+// const cors = require('cors');
+const middlewares = require('./middlewares.js');
 
-//npm i cors
-//require cors
-//server.use(cors)
+const signature = "token_Generator_3402921GtFDnL"; //esta bien que este en los dos archivos?
 
-const signature = "token_Generator_3402921GtFDnL";
+
+// let newMsg = middlewares.funciona("hola, caro");
 
 
 let date = moment().format("DD-MM-YYYY");
 let time = moment().format("HH:mm");
 
+// server.use(cors);
 server.use(bodyParser.json());
 
 server.listen(3000, () => {
     console.log("Servidor iniciado...");
 });
 
+// let middle = middlewares.validateUser;
 //agregar respuestas de errores y codigos exito/error y middlewares (token y same user)
 
 //---------------productos
 
-server.get('/products', (request, response) => {
-    response.json(products);
+server.get('/products', middlewares.validateUser, (request, response) => {
+    //prueba pasar info -->sacar validacion admin de este endpoint
+    if(request.admin) {
+        response.json(products);
+    } else {
+        response.status(401).json({msj: "no es administrador"});
+    }
+
 });
 
 server.post('/products', (request, response) => {
@@ -200,6 +209,32 @@ server.delete('/users/:id', (request, response) => {
 });
 
 //post cliente y admin / login -->sacar login de users path?
+
+
+//revisar
+server.post('/login', (request, response) => {
+    let userFound = false;
+
+    console.log(request.body);
+    let {user, pass} = (request.body);
+    console.log(user);
+    
+    users.forEach( element => {
+        
+        if((element.userName == user && element.password == pass) || (element.email == user && element.password == pass)){
+            let userInfo = {id: element.id, admin: element.admin};
+            let token = jwt.sign(userInfo, signature);
+            userFound = true;
+            response.status(200).json({
+                token: token,
+                userId: element.id
+            });
+        }
+    });
+
+    if(!userFound) response.status(401).json({msj: 'Wrong user or password'});
+ });
+
 
 
 //-----------------pedidos
