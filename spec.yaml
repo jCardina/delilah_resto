@@ -1,0 +1,968 @@
+openapi: 3.0.0
+
+info:
+  title: Delilah Resto API
+  description: Food delivery
+  version: 1.0.0
+  
+servers:
+  - url: https://api.delilah.com/v1
+  
+tags:
+- name: "Products"
+  description: "Operations about products"
+- name: "Users"
+  description: "Operations about users"
+- name: "Orders"
+  description: "Operations about orders"
+ 
+paths:
+
+  /products:
+  
+    get:
+      tags:
+        - "Products"
+      summary: Returns a list of products.
+      security:
+        - tokenAuthorizationGeneral: []
+      parameters:
+        - name: token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: JSON array of products
+          content:
+            application/json:
+              schema: 
+                type: array
+                items: 
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                    name:
+                      type: string
+                    keyword:
+                      type: string
+                    price:
+                      type: number
+                    photoUrl:
+                      type: string
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '500':
+          description: Internal server error
+                  
+    post:
+      tags:
+        - "Products"
+      summary: Creates a product.
+      security:
+        - tokenAuthorizationAdmin: []
+      parameters:
+        - name: token
+          in: header
+          description: "Role required: Admin"
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                keyword:
+                  type: string
+                price:
+                  type: number
+                photoUrl:
+                  type: string
+      responses: 
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  id:
+                    type: number
+                  name:
+                    type: string
+                  keyword:
+                    type: string
+                  price:
+                    type: number
+                  photoUrl:
+                    type: string
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '409':
+          description: Product already exists
+        '500':
+          description: Internal server error
+          
+                  
+  /products/{productId}:
+    get:
+      tags:
+        - "Products"
+      summary: Returns a product by ID.
+      security:
+        - tokenAuthorizationGeneral: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type : integer
+            format: int64
+            minimum: 1
+        - in: header
+          name: token
+          required: true
+          schema:
+            type: string
+      responses: 
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                  name:
+                    type: string
+                  keyword:
+                    type: string
+                  price:
+                    type: number
+                  photoUrl:
+                    type: string
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '404':
+          description: Product not found
+        '500':
+          description: Internal server error
+          
+    put:
+      tags:
+        - "Products"
+      summary: Modifies a product by ID.
+      security:
+        - tokenAuthorizationAdmin: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type : integer
+            format: int64
+            minimum: 1
+        - name: token
+          in: header
+          description: "Role required: Admin"
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                keyword:
+                  type: string
+                price:
+                  type: number
+                photoUrl:
+                  type: string
+      responses: 
+        '200':
+          description: Modified product
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                  name:
+                    type: string
+                  keyword:
+                    type: string
+                  price:
+                    type: number
+                  photoUrl:
+                    type: string
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '404':
+          description: Product not found
+        '500':
+          description: Internal server error
+          
+    delete:
+      tags:
+        - "Products"
+      summary: Deletes a product by ID.
+      security:
+        - tokenAuthorizationAdmin: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type : integer
+            format: int64
+            minimum: 1
+        - name: token
+          in: header
+          description: "Role required: Admin"
+          required: true
+          schema:
+            type: string
+      responses: 
+        '204':
+          description: Product deleted
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '404':
+          description: Product not found
+        '500':
+          description: Internal server error
+    
+    
+  /users:
+  
+    get:
+      tags:
+        - "Users"
+      summary: Returns a list of users.
+      security:
+        - tokenAuthorizationAdmin: []
+      parameters:
+        - name: token
+          in: header
+          description: "Role required: Admin"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: JSON array of users
+          content:
+            application/json:
+              schema: 
+                type: array
+                items: 
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                    userName:
+                      type: string
+                      minLength: 6
+                      maxLength: 18
+                    admin:
+                      type: boolean
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '500':
+          description: Internal server error
+          
+    post:
+      tags:
+        - "Users"
+      summary: Creates a user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                userName:
+                  type: string
+                  minLength: 6
+                  maxLength: 18
+                email:
+                  type: string
+                address:
+                  type: string
+                phoneNumber:
+                  type: number
+                password:
+                  type: string
+                  minLength: 6
+      responses: 
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  id:
+                    type: number
+                  name:
+                    type: string
+                  userName:
+                    type: string
+                  email:
+                    type: string
+                  address:
+                    type: string
+                  phoneNumber:
+                    type: number
+                  admin:
+                    type: boolean
+                    default: false
+                  
+        '400':
+          description: Bad request
+        '409':
+          description: User already exists
+        '500':
+          description: Internal server error
+          
+          
+  /users/admin:
+  
+    post:
+      tags:
+        - "Users"
+      security:
+        - ApiKeyAuthorization: [] 
+      summary: Creates an admin user.
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type : string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                userName:
+                  type: string
+                  minLength: 6
+                  maxLength: 18
+                email:
+                  type: string
+                password:
+                  type: string
+                  minLength: 6
+      responses: 
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties:
+                  id:
+                    type: number
+                  name:
+                    type: string
+                  userName:
+                    type: string
+                  email:
+                    type: string
+                  admin:
+                    type: boolean
+                    default: true
+                  
+        '400':
+          description: Bad request
+        '401':
+          description: API key is missing or invalid
+        '409':
+          description: User already exists
+        '500':
+          description: Internal server error
+        
+          
+  /login:
+    
+    post: #cambiar solo por user para las dos opciones
+      tags:
+        - "Users"
+      summary: User login.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+                oneOf:
+                - $ref: '#/components/schemas/userLogin'
+                - $ref: '#/components/schemas/emailLogin'
+            example:
+              username or email: user
+              password: password
+                  
+      responses: 
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema: 
+                type: object
+                properties: #revisar
+                  token:
+                    type: string
+                  userId:
+                    type: number
+                  #userName:
+                   # type: string
+                  #admin:
+                   # type: boolean
+                  
+        '400':
+          description: Bad request / wrong user or password
+        '500':
+          description: Internal server error
+          
+                  
+  /users/{userId}:
+    get:
+      tags:
+        - "Users"
+      summary: Returns a user by ID.
+      description: "This can only be done by the logged in user or an Admin."
+      security:
+        - tokenAuthorizationGeneral: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type : integer
+            format: int64
+            minimum: 1
+        - name: token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses: 
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                  name:
+                    type: string
+                  userName:
+                    type: string
+                  email:
+                    type: string
+                  address:
+                    type: string
+                  phoneNumber:
+                    type: number
+                  admin:
+                    type: boolean
+                    default: false
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+          
+    patch: #put?
+      tags:
+        - "Users"
+      summary: Modifies a user by ID.
+      description: "This can only be done by the logged in user."
+      security:
+        - tokenAuthorizationGeneral: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type : integer
+            format: int64
+            minimum: 1
+        - name: token
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                userName:
+                  type: string
+                  minLength: 6
+                  maxLength: 18
+                email:
+                  type: string
+                address:
+                  type: string
+                phoneNumber:
+                  type: number
+                password:
+                  type: string
+                  minLength: 6
+      responses: 
+        '200':
+          description: Modified user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: number
+                  name:
+                    type: string
+                  userName:
+                    type: string
+                  email:
+                    type: string
+                  address:
+                    type: string
+                  phoneNumber:
+                    type: number
+                  admin:
+                    type: boolean
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+          
+    delete:
+      tags:
+        - "Users"
+      summary: Deletes a user by ID.
+      description: "This can only be done by the logged in user."
+      security:
+        - tokenAuthorizationGeneral: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type : integer
+            format: int64
+            minimum: 1
+        - name: token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses: 
+        '204':
+          description: User deleted
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+          
+  /users/{userId}/orders:
+    get:
+      tags:
+        - "Orders"
+      summary: Returns a list of orders by user.
+      description: "This can only be done by the logged in user."
+      security:
+        - tokenAuthorizationGeneral: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type : integer
+            format: int64
+            minimum: 1
+        - name: token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses: 
+        '200':
+          description: JSON array of orders
+          content:
+            application/json:
+              schema: 
+                type: array
+                items:
+                  $ref: '#/components/schemas/orderData'
+    
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+   
+          
+          
+  /orders:
+  
+    get:
+      tags:
+        - "Orders"
+      summary: Returns a list of orders.
+      security:
+        - tokenAuthorizationAdmin: []
+      parameters:
+        - name: token
+          in: header
+          description: "Role required: Admin"
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: JSON array of orders
+          content:
+            application/json:
+              schema: 
+                type: array
+                items:
+                  $ref: '#/components/schemas/orderData'
+                  
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '500':
+          description: Internal server error
+          
+    post:
+      tags:
+        - "Orders"
+      summary: Creates an order.
+      description: "This can only be done by the logged in user."
+      security:
+        - tokenAuthorizationGeneral: []
+      parameters:
+        - name: token
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                products: #revisar
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: number
+                      quantity:
+                        type: integer
+                        format: int64
+                        minimum: 1
+                total:
+                  type: number
+                userId:
+                  type: number
+                paymentMethod:
+                  type: string
+
+      responses: 
+        '201':
+          description: order created
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/orderData'
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '500':
+          description: Internal server error
+          
+  /orders/{orderId}:
+  
+    get:
+      tags:
+        - "Orders"
+      summary: Returns an order by ID.
+      description: "This can only be done by the logged in user or an Admin."
+      security:
+        - tokenAuthorizationGeneral: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type : integer
+            format: int64
+            minimum: 1
+        - name: token
+          in: header
+          required: true
+          schema:
+            type: string
+        
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/orderData'
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '404':
+          description: Order not found
+        '500':
+          description: Internal server error
+    
+          
+    patch: #put?
+      tags:
+        - "Orders"
+      summary: Modifies order status by ID.
+      security:
+        - tokenAuthorizationAdmin: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type : integer
+            format: int64
+            minimum: 1
+        - name: token
+          in: header
+          description: "Role required: admin"
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - nuevo
+              - confirmado
+              - preparando
+              - enviando
+              - entregado
+              - cancelado
+            
+      responses: 
+        '200':
+          description: Modified status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/orderData'
+        '400':
+          description: Bad request
+        '401':
+          $ref: '#/components/responses/tokenMissing'
+        '404':
+          description: Order not found
+        '500':
+          description: Internal server error
+          
+  #  delete: borrar pedidos viejos?
+   #   tags:
+    #    - "Orders"
+     # summary: Deletes an order by ID.
+      #security:
+       # - tokenAuthorizationAdmin: []
+    #  parameters:
+     #   - name: orderId
+      #    in: path
+       #   required: true
+        #  schema:
+         #   type : integer
+          #  format: int64
+           # minimum: 1
+        #- name: token
+         # in: header
+          #description: "Role required: Admin"
+    #      required: true
+     #     schema:
+      #      type: string
+    #  responses: 
+     #   '204':
+      #    description: Order cancelled
+       # '400':
+        #  description: Bad request
+      #  '401':
+       #   $ref: '#/components/responses/tokenMissing'
+        #'404':
+         # description: Order not found
+      #  '500':
+       #   description: Internal server error
+    
+    
+  
+components:
+
+  schemas:
+  
+    userLogin:
+      type: object
+      properties:
+        userName:
+          type: string
+          minLength: 6
+          maxLength: 18
+        password:
+          type: string
+          minLength: 6
+          
+    emailLogin:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+          minLength: 6
+          
+    orderData:
+      type: object
+      properties:
+        orderId:
+          type: number
+        products: #revisar
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+             # name:
+              #  type: string
+              #keyword:
+               # type: string
+              #price:
+               # type: number
+              quantity:
+                type: integer
+                format: int64
+                minimum: 1
+              #photoUrl:
+               # type: string
+        total:
+          type: number
+        userId:
+          type: number
+        #user: #revisar
+          #type: object
+          #properties:
+            #id:
+             # type: number
+            #name:
+             # type: string
+            #userName:
+             # type: string
+            #email:
+             # type: string
+            #address:
+             # type: string
+            #phoneNumber:
+             # type: number
+        paymentMethod:
+          type: string
+        timeStamp:
+          type: string
+        date:
+          type: string
+        status:
+          type: string
+
+        
+          
+  securitySchemes:
+    ApiKeyAuthorization:
+      type: apiKey
+      in: query
+      name: API-KEY
+      
+    tokenAuthorizationAdmin:
+      type: http
+      scheme: bearer
+      description: "Role required: Admin"
+      
+    tokenAuthorizationGeneral:
+      type: http
+      scheme: bearer
+      
+      
+  responses:
+    tokenMissing:
+      description: Token missing or invalid
+      
+    
+          
+ 
