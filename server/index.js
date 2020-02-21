@@ -22,22 +22,21 @@ server.listen(3000, () => {
     console.log("Servidor iniciado...");
 });
 
-// let middle = middlewares.validateUser;
+let validateUser = middlewares.validateUser;
+let validateAdmin = middlewares.validateAdmin;
+let validateSameUser = middlewares.validateSameUser;
 //agregar respuestas de errores y codigos exito/error y middlewares (token y same user)
+
+//sacar request params de usuarios que no hagan falta en este archivo porque estan en los middlewares
 
 //---------------productos
 
-server.get('/products', middlewares.validateUser, (request, response) => {
-    //prueba pasar info -->sacar validacion admin de este endpoint
-    if(request.admin) {
-        response.json(products);
-    } else {
-        response.status(401).json({msj: "no es administrador"});
-    }
+server.get('/products', validateUser, (request, response) => {
 
+        response.json(products);
 });
 
-server.post('/products', (request, response) => {
+server.post('/products', validateUser, validateAdmin, (request, response) => {
     let {name, keyword, price, photoUrl} = request.body;
     
     let lastAssignedId = products[products.length - 1].id;
@@ -58,7 +57,7 @@ server.post('/products', (request, response) => {
     response.json(newProduct);
 });
 
-server.get('/products/:id', (request, response) => {
+server.get('/products/:id',validateUser, (request, response) => { //hace falta?
     const id = request.params.id;
     
     products.forEach(element => {
@@ -69,7 +68,7 @@ server.get('/products/:id', (request, response) => {
     
 });
 
-server.put('/products/:id', (request, response) => { //o patch? // 204 para put?
+server.put('/products/:id', validateUser, validateAdmin, (request, response) => { //204 para put?
     const id = request.params.id;
     let {name, keyword, price, photoUrl} = request.body;
 
@@ -88,7 +87,7 @@ server.put('/products/:id', (request, response) => { //o patch? // 204 para put?
     
 });
 
-server.delete('/products/:id', (request, response) => {
+server.delete('/products/:id', validateUser, validateAdmin, (request, response) => {
     const id = request.params.id;
     
     products.forEach(element => {
@@ -110,23 +109,28 @@ server.delete('/products/:id', (request, response) => {
 
 //-------------usuarios
 
-server.get('/users', (request, response) => {
+server.get('/users', validateUser, validateAdmin, (request, response) => {
     let usersPublic = [];
 
     users.forEach (element => {
-        let publicData = {
+        let userData = {
             id: element.id,
+            name: element.name,
             userName: element.userName,
+            email: element.email,
+            address: element.address,
+            phoneNumber: element.phoneNumber,
             admin: element.admin
         }
-        usersPublic.push(publicData);
+        usersPublic.push(userData);
     });
     response.json(usersPublic);
 });
 
-server.get('/users/:id', (request, response) => {
+server.get('/users/:id', validateUser, validateSameUser, (request, response) => {
 
-    const id = request.params.id;
+    // const id = request.params.id;
+    const id = request.userId;
     users.forEach (element => {
     
         if(element.id == id) {
@@ -146,8 +150,9 @@ server.get('/users/:id', (request, response) => {
     });
 });
 
-server.patch('/users/:id', (request, response) => { //o patch? // 204 para put?
-    const id = request.params.id;
+server.put('/users/:id', validateUser, validateSameUser, (request, response) => { //204 para put?
+    // const id = request.params.id;
+    const id = request.userId;
     let data = request.body;
 
     users.forEach(element => {
@@ -189,8 +194,9 @@ server.patch('/users/:id', (request, response) => { //o patch? // 204 para put?
     
 });
 
-server.delete('/users/:id', (request, response) => {
-    const id = request.params.id;
+server.delete('/users/:id', validateUser, validateSameUser, (request, response) => {
+    // const id = request.params.id;
+    const id = request.userId;
     
     users.forEach(element => {
         if(element.id == id) {
@@ -208,7 +214,8 @@ server.delete('/users/:id', (request, response) => {
     
 });
 
-//post cliente y admin / login -->sacar login de users path?
+//post cliente y admin
+//agregar try catch a todos los endpoints
 
 
 //revisar
@@ -216,7 +223,7 @@ server.post('/login', (request, response) => {
     let userFound = false;
 
     console.log(request.body);
-    let {user, pass} = (request.body);
+    let {user, pass} = request.body;
     console.log(user);
     
     users.forEach( element => {
@@ -232,20 +239,24 @@ server.post('/login', (request, response) => {
         }
     });
 
-    if(!userFound) response.status(401).json({msj: 'Wrong user or password'});
+    if(!userFound) {
+        response.status(401).json({msj: 'Wrong user or password'}); //agregar validaciones de bad request cuando las keys faltan o estan mal escritas
+    }
  });
 
-
+//revisar que los validate same user sean en endpoints donde el path tenga el id del usuario y no del pedido o ninguno
 
 //-----------------pedidos
 
-server.get('/orders', (request, response) => {
+server.get('/orders', validateUser, validateAdmin, (request, response) => {
     response.json(orders);
 });
 
 
-server.post('/orders', (request, response) => {
-    let {products, total, userId, paymentMethod} = request.body;
+server.post('/orders', validateUser, (request, response) => {
+
+    let {products, total, paymentMethod} = request.body;
+    let userId = request.userId;
     
     let lastAssignedId = orders[orders.length - 1].orderId;
     let newID = lastAssignedId + 1;
@@ -270,8 +281,9 @@ server.post('/orders', (request, response) => {
 
 
 
-server.get('/users/:id/orders', (request, response) => {
-    const id = request.params.id;
+server.get('/users/:id/orders', validateUser, validateSameUser, (request, response) => {
+    // const id = request.params.id;
+    const id = request.userId;
 
     let userOrders = []
     
@@ -285,18 +297,20 @@ server.get('/users/:id/orders', (request, response) => {
     
 });
 
-server.get('/orders/:id', (request, response) => {
+server.get('/orders/:id', validateUser, (request, response) => { //revisar parte es el mismo usuario 
+    //hace falta este endpoint?
     const id = request.params.id;
+    const reqUserId = request.userId;
     
     orders.forEach(element => {
-        if(element.orderId == id) {
+        if(element.orderId == id && element.userId == reqUserId) {
             response.json(element);
         }
     });
     
 });
 
-server.patch('/orders/:id', (request, response) => {
+server.put('/orders/:id', validateUser, validateAdmin, (request, response) => {
     const id = request.params.id;
     const status = request.query;
     
@@ -309,6 +323,8 @@ server.patch('/orders/:id', (request, response) => {
     });
     
 });
+
+// agregar delete orders
 
 
 
