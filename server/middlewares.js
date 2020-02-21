@@ -1,4 +1,4 @@
-
+// const invalid = "invalid";
 
 const jwt = require('jsonwebtoken');
 const signature = "token_Generator_3402921GtFDnL";
@@ -12,12 +12,19 @@ const validateUser = (request, response, next) => { //revisar
             return getToken;
         } catch(error) {
             response.status(401).json({msj: 'Token missing'});
+            return false;
         }
     }
 
+
     const token =  splitToken();
-    
     console.log(token);
+
+    if(!token) {
+        return;
+    }
+
+    
     try { //revisar funcionamiento
         
         let verifyToken = jwt.verify(token, signature);
@@ -38,4 +45,26 @@ const validateUser = (request, response, next) => { //revisar
     }                  
 }
 
+const validateSameUser = (request, response, next) => {
+    const id = request.params.id;
+
+    if(request.userId == id) {
+        next();
+    } else {
+        response.status(403).json({msj: 'forbidden'}); //cambiar mensaje
+    }
+}
+
+
+//validar admin
+const validateAdmin = (request, response, next) => {
+    if(request.admin) {
+        next();
+    } else {
+        response.status(403).json({msj: 'forbidden'}); //cambiar mensaje
+    }
+}
+
 module.exports.validateUser = validateUser;
+module.exports.validateAdmin = validateAdmin;
+module.exports.validateSameUser = validateSameUser;
