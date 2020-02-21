@@ -17,7 +17,8 @@ tags:
   description: "Operations about orders"
  
 paths:
-
+              #agregar code forbiden cuando no es usuario
+              #agregar delete orders?
   /products:
   
     get:
@@ -440,6 +441,7 @@ paths:
               properties:
                 user:
                   type: string
+                  example: "userName or password"
                 password:
                   type: string
                   
@@ -515,7 +517,7 @@ paths:
         '500':
           description: Internal server error
           
-    patch: #put? #arreglar/definir que es obligatorio
+    put: #arreglar/definir que es obligatorio
       tags:
         - "Users"
       summary: Modifies a user by ID.
@@ -727,8 +729,8 @@ paths:
                         minimum: 1
                 total:
                   type: number
-                userId:
-                  type: number
+               # userId:
+                #  type: number
                 paymentMethod:
                   type: string
 
@@ -748,7 +750,7 @@ paths:
           
   /orders/{orderId}:
   
-    get:
+    get: #hace falta?
       tags:
         - "Orders"
       summary: Returns an order by ID.
@@ -786,7 +788,7 @@ paths:
           description: Internal server error
     
           
-    patch: #put?
+    put:
       tags:
         - "Orders"
       summary: Modifies order status by ID.
