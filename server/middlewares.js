@@ -68,3 +68,5 @@ const validateAdmin = (request, response, next) => {
 module.exports.validateUser = validateUser;
 module.exports.validateAdmin = validateAdmin;
 module.exports.validateSameUser = validateSameUser;
+
+module.exports.signature = signature; //revisar
