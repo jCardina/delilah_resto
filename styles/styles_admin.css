@@ -1,0 +1,418 @@
+
+* {
+	box-sizing: border-box;
+	margin: 0px;
+	padding: 0px;
+	border: 0px;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+body {
+	font-family: 'Roboto', sans-serif;
+	width: 100%;
+	display: flex;
+	flex-flow: column nowrap;
+	color: #000000;
+	min-height: 100vh;
+
+}
+
+button {
+	font-family: 'Roboto', sans-serif;
+}
+
+nav, .topBar {
+	width: 100%;
+	height: 80px;
+	background-color: #3addda;
+	display: flex;
+	flex-flow: row nowrap;
+
+}
+
+nav, #columnsTitles {
+	position: fixed;
+	z-index: 3;
+}
+
+#columnsTitles {
+	
+}
+
+nav div {
+	display: flex;
+	flex-flow: row nowrap;
+	
+}
+
+nav h1, nav h4, nav a {
+	color: #FFFFFF;
+}
+
+.leftSide, .rightSide {
+	width: 50%;
+
+}
+
+.leftSide {
+	margin-left: 2%;
+	
+}
+
+.rightSide {
+	
+	margin-right: 2%;
+	justify-content: space-between;
+	
+}
+
+#brandName {
+	width: 300px;
+	align-items: center;
+}
+
+#date h4 {
+	font-size: 16px;
+	font-weight: normal; 
+	line-height: 80px;
+}
+
+#brandName h1 {
+	font-family: 'Quicksand', sans-serif;
+	font-size: 36px;
+}
+
+.navLinks {
+	width: 400px; /**realinear?*/
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: space-between;
+	align-items: center;
+	padding-left: 120px;
+}
+
+.navLinks a {
+	font-weight: bold;
+	font-size: 14px;
+}
+
+.navButton {
+	display: flex;
+	align-items: center;
+	padding-left: 30px;
+}
+
+
+.navButton button {
+	width: 190px;
+	height: 36px;
+	background-color: #FFFFFF;
+	color: #fc895c;
+	border-radius: 50px;
+	font-weight: bold;
+}
+
+#orders {
+	margin-top: 130px;
+}
+
+#columnsTitles {
+	color: #868d92;
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+	padding-left: 2%;
+	padding-right: 2%;
+	padding-top: 10px;
+	height: 50px;
+	border-bottom: 1px solid #e4ebe5;
+	top: 80px;
+	background-color: #FFFFFF;
+}
+
+#columnsTitles button {
+	color: #868d92;
+	font-weight: bold;
+	background-color: transparent;
+}
+
+#columnsTitles div, .row div {
+	display: flex;
+	align-items: center;
+
+}
+
+#columnsTitles button:first-child {
+	margin-right: 88px;
+}
+
+#columnsTitles h3, #columnsTitles button, .row {
+	font-size: 14px;
+}
+
+.clmn1 {
+	width: 164px;
+	
+}
+
+.clmn6 {
+	width: 18%;
+	min-width: 150px;
+	
+}
+
+.clmn2, .clmn3, .clmn5 {
+	width: 7%;
+	min-width: 60px;
+	
+}
+
+.clmn4, .clmn7 {
+	width: 25%;
+	min-width: 150px;
+	
+}
+
+.row {
+	background-color: #f2faf3;
+	color: #000000;
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+	padding-left: 2%;
+	padding-right: 2%;
+	height: 40px;
+}
+
+
+.row:nth-child(odd) {
+	background: #FFFFFF;
+}
+
+button.status {
+	width: 140px;
+	height: 24px;
+	border-radius: 50px;
+	letter-spacing: 1px;
+	color: #FFFFFF;
+	font-size: 12px;
+	text-align: left;
+	text-indent: 15px;
+	font-weight: bold;
+	position: relative;
+
+}
+
+#selectStatus button.status {
+	opacity: 30%;
+}
+
+#selectStatus button.status.active {
+	opacity: 100%;
+}
+
+button .arrow {
+	font-size: 16px;
+	position: absolute;
+	top: 0px;
+	left: calc(100% - 35px);
+
+
+}
+
+.paymentMethod i {
+	
+	padding-right: 10px;
+}
+
+#orderDetailsBackdrop {
+	backdrop-filter: blur(2px) brightness(80%);
+	width: 100%;
+	/*height: calc(100% + 80px);*/
+	height: 100vh;
+	position: absolute;
+	z-index: 4;
+	top: 0px;
+	justify-content: flex-end;
+	display: none;
+	
+}
+
+#orderDetailsBackdrop.open {
+	display: flex;
+}
+
+
+
+#orderDetailsBackdrop > div {
+	overflow-x: hidden;
+	background-color: #FFFFFF;
+	width: 0px;
+	transition: 0.8s linear;
+	display: flex;
+	flex-flow: column nowrap;
+
+}
+
+#details.open {
+	width: 550px;
+}
+
+.topBar {
+	color: #FFFFFF;
+	padding: 0px 30px 0px 30px;
+	line-height: 80px;
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+}
+
+.topBar h2 {
+	font-size: 16px;
+}
+
+.topBar button {
+	font-size: 18px;
+	height: 20px;
+	background-color: transparent;
+	color: #FFFFFF;
+	font-weight: bold;
+	display: none;
+
+}
+
+#details.open .topBar button {
+	display: block;
+}
+
+.padding {
+	padding-top: 30px;
+	padding-left: 35px;
+}
+
+.products {
+	display: flex;
+	flex-flow: row nowrap;
+	padding-bottom: 5px;
+}
+
+h5.title  {
+	color: #868d92;
+	padding-bottom: 10px;
+}
+
+.userTitle, .addressTitle {
+	padding-top: 10px
+}
+
+.products img {
+	height: 40px;
+	width: 40px;
+	object-fit: cover;
+}
+
+.productInfo {
+	text-indent: 10px;
+}
+
+
+#details p {
+	padding-bottom: 2px;
+	font-size: 14px;
+}
+
+.productInfo p:nth-child(2) {
+	color: #868d92;
+}
+
+#details p span {
+	font-weight: bold;
+}
+
+p#total {
+	padding-top: 10px;
+	padding-bottom: 20px;
+}
+
+#selectStatus {
+	display: flex;
+	flex-flow: column nowrap;
+	justify-content: space-between;
+	padding-bottom: 20px;
+	height: 160px;
+}
+
+button.new {
+	background-color: #ff2954;
+}
+
+button.confirmed {
+	background-color: #ff844f;
+}
+
+button.preparing {
+	background-color: #ffe250;
+}
+
+button.shipped {
+	background-color: #33f5c8;
+}
+
+button.delivered {
+	background-color: #90a39b;
+}
+
+button.canceled {
+	background-color: #c1d4cc;
+}
+
+
+.userDetails div {
+	display: flex;
+	flex-flow: row nowrap;
+	padding-bottom: 10px;
+}
+
+.userDetails div:first-child p:first-child {
+	font-weight: bold;
+}
+
+.userDetails p {
+	min-width: 250px;
+
+
+}
+
+.btnContainer {
+	padding: 35px 0px 35px 0px;
+}
+
+.btnContainer button {
+	letter-spacing: 1px;
+	border-radius: 50px;
+	height: 40px;
+	width: 200px;
+}
+
+.btnContainer .primary {
+	background-color: #fc895c;
+	color: #FFFFFF;
+	margin-right: 20px;
+}
+
+.btnContainer .secondary {
+	background-color: #FFFFFF;
+	color: #fc895c;
+	border: 2px solid #fc895c;
+}
+
+
+
+/*agregar overflow hidden y puntos suspensivos*/
+/*revisar scroll*/
+/*agregar mas separacion altura en detalles entre usuario metodo de pago etc*/
