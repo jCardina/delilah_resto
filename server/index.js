@@ -4,9 +4,10 @@ const bodyParser = require('body-parser');
 const moment = require('moment');
 const jwt = require('jsonwebtoken');
 // const cors = require('cors');
-const middlewares = require('./middlewares.js');
+const middlewares = require('./middlewares');
 
-const signature = "token_Generator_3402921GtFDnL"; //esta bien que este en los dos archivos?
+//const signature = "token_Generator_3402921GtFDnL"; //esta bien que este en los dos archivos?
+const signature = middlewares.signature; //revisar que funcione
 
 
 // let newMsg = middlewares.funciona("hola, caro");
