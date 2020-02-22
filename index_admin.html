@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<title>---------</title>
+	<!--metadata-->
+
+	<link href="https://fonts.googleapis.com/css?family=Quicksand&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="./styles/styles_admin.css"> <!--corregir ruta-->
+
+	<link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+
+	<header>
+		<nav>
+
+			<div class="leftSide">
+				<div id="brandName">
+					<h1>Delilah Restó</h1>
+				</div>
+
+				<div id="date">
+					<h4>Jueves 5 de septiembre</h4><!--hacer dinamico-->
+
+				</div>
+
+			</div>
+
+			<div class="rightSide">
+				<!--cambiar por botones?-->
+				<div class="navLinks">
+					<a href="">PEDIDOS</a>
+					<a href="">ADMIN</a>
+					<a href="">HISTORIAL</a>
+				</div>
+				<div class="navButton">
+					<button>CARGAR PRODUCTO</button>
+				</div>
+			</div>
+
+		</nav>
+	</header>
+
+	<section id="orders">
+
+		<div id="columnsTitles">
+			<div class="cTitles clmn1">
+				<button>ESTADO</button>
+			</div>
+			<div class="cTitles clmn2">
+				<button>HORA</button>
+			</div>
+			<div class="cTitles clmn3">
+				<h3>NÚMERO</h3>
+			</div>
+			<div class="cTitles clmn4">
+				<h3>DESCRIPCIÓN</h3>
+			</div>
+			<div class="cTitles clmn5">
+				<h3>PAGO</h3>
+			</div>
+			<div class="cTitles clmn6">
+				<h3>USUARIO</h3>
+			</div>
+			<div class="cTitles clmn7">
+				<h3>DIRECCIÓN</h3>
+			</div>
+
+		</div>
+
+		<div id="ordersList">
+
+			<div class="row">
+				<div class="clmn1 status">
+					<button class="status new">NUEVO<i class="fa fa-sort-down arrow"></i></button>
+				</div>
+				<div class="clmn2 time">
+					<p>12:30</p>
+				</div>
+				<div class="clmn3 orderId">
+					<p>#20</p>
+				</div>
+				<div class="clmn4 products">
+					<p>1xHamClass</p>
+				</div>
+				<div class="clmn5 paymentMethod">
+					<p><i class="fa fa-credit-card payment"></i>$600</p>
+				</div>
+				<div class="clmn6 user">
+					<p>Freddie Mercury</p>
+				</div>
+				<div class="clmn7 address">
+					<p>Peru 123</p>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="clmn1 status">
+					<button class="status shipped">ENVIANDO<i class="fa fa-sort-down arrow"></i></button>
+				</div>
+				<div class="clmn2 time">
+					<p>12:30</p>
+				</div>
+				<div class="clmn3 orderId">
+					<p>#20</p>
+				</div>
+				<div class="clmn4 products">
+					<p>1xHamClass</p>
+				</div>
+				<div class="clmn5 paymentMethod">
+					<p><i class="fa fa-money payment"></i>$600</p>
+				</div>
+				<div class="clmn6 user">
+					<p>Freddie Mercury</p>
+				</div>
+				<div class="clmn7 address">
+					<p>Peru 123</p>
+				</div>
+			</div>
+
+
+			<div class="row">
+				<div class="clmn1 status">
+					<button class="status confirmed">CONFIRMADO<i class="fa fa-sort-down arrow"></i></button>
+				</div>
+				<div class="clmn2 time">
+					<p>12:30</p>
+				</div>
+				<div class="clmn3 orderId">
+					<p>#20</p>
+				</div>
+				<div class="clmn4 products">
+					<p>1xHamClass</p>
+				</div>
+				<div class="clmn5 paymentMethod">
+					<p><i class="fa fa-credit-card payment"></i>$600</p>
+				</div>
+				<div class="clmn6 user">
+					<p>Freddie Mercury</p>
+				</div>
+				<div class="clmn7 address">
+					<p>Peru 123</p>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="clmn1 status">
+					<button class="status preparing">PREPARANDO<i class="fa fa-sort-down arrow"></i></button>
+				</div>
+				<div class="clmn2 time">
+					<p>12:30</p>
+				</div>
+				<div class="clmn3 orderId">
+					<p>#20</p>
+				</div>
+				<div class="clmn4 products">
+					<p>1xHamClass</p>
+				</div>
+				<div class="clmn5 paymentMethod">
+					<p><i class="fa fa-money payment"></i>$600</p>
+				</div>
+				<div class="clmn6 user">
+					<p>Freddie Mercury</p>
+				</div>
+				<div class="clmn7 address">
+					<p>Peru 123</p>
+				</div>
+			</div>
+
+
+			<div id="orderDetailsBackdrop">
+				<div id="details">
+					<div class="topBar">
+						<h2>DETALLE DEL PEDIDO</h2>
+						<button>&#10005;</button>
+					</div>
+
+					<div class="padding">
+
+						<h5 class="title">Detalle</h5>
+
+						<div id="productsList">
+
+
+							<div class="products">
+								<div>
+									<img src="https://cocina-casera.com/wp-content/uploads/2016/11/hamburguesa-queso-receta.jpg" alt="productPhoto">
+								</div>
+								<div class="productInfo">
+									<p>3 Hamburguesa Clásica</p>
+									<p>$350</p>
+								</div>
+
+							</div>
+
+							<div class="products">
+								<div>
+									<img src="https://cocina-casera.com/wp-content/uploads/2016/11/hamburguesa-queso-receta.jpg" alt="productPhoto">
+								</div>
+								<div class="productInfo">
+									<p>3 Hamburguesa Clásica</p>
+									<p>$350</p>
+								</div>
+
+							</div>
+
+							<p id="total">Total: <span>$660</span></p>
+
+						</div>
+
+						<h5 class="title">Estado</h5>
+
+						<div id="selectStatus">
+							<button class="status new active">NUEVO</button>
+							<button class="status confirmed">CONFIRMADO</button>
+							<button class="status preparing">PREPARANDO</button>
+							<button class="status shipped">ENVIANDO</button>
+							<button class="status delivered">ENTREGADO</button>
+						</div>
+
+						<h5 class="title">Forma de pago</h5>
+						<p id="payment">Efectivo</p>
+
+						<h5 class="title addressTitle">Dirección</h5>
+						<p id="userAddress">Peru 123</p>
+
+						<h5 class="title userTitle">Usuario</h5>
+						<div class="userDetails">
+							<div>
+								<p id="name">Freddie Mercury</p>
+								<p id="username">Freddie_123</p>
+							</div>
+							<div>
+								<p id="email">freddie@gmail.com</p>
+								<p id="phone">45241155</p>
+							</div>
+						</div>
+
+						<div class="btnContainer">
+							<button class="primary">LLAMAR AL TELÉFONO</button>
+							<button class="secondary">CANCELAR ORDEN</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+
+		</div>
+
+		<button id="toggle" style="position: absolute; z-index: 5">prueba</button>
+
+	</section>
+
+
+
+
+	<script type="text/javascript" src="./functions/index_admin_functions.js"></script>
+
+
+</body>
+</html>
