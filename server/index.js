@@ -386,7 +386,7 @@ let products = [
 
 let orders = [
     {
-        orderId: 1,
+        orderId: 1, //cambiar por id y productId
         products: [
           {
             id: 2,
