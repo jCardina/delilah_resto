@@ -12,6 +12,11 @@ const signature = middlewares.signature; //revisar que funcione
 
 // let newMsg = middlewares.funciona("hola, caro");
 
+//libreria routes
+
+//npm i mysql
+//definir array funciones que
+
 
 let date = moment().format("DD-MM-YYYY");
 let time = moment().format("HH:mm");
