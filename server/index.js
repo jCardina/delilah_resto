@@ -3,11 +3,11 @@ const server = express();
 const bodyParser = require('body-parser');
 const moment = require('moment');
 const jwt = require('jsonwebtoken');
-// const cors = require('cors');
+const cors = require('cors');
 const middlewares = require('./middlewares');
 
-//const signature = "token_Generator_3402921GtFDnL"; //esta bien que este en los dos archivos?
-const signature = middlewares.signature; //revisar que funcione
+const signature = "token_Generator_3402921GtFDnL";
+// const signature = middlewares.signature; //revisar que funcione
 
 
 // let newMsg = middlewares.funciona("hola, caro");
@@ -26,20 +26,20 @@ const signature = middlewares.signature; //revisar que funcione
 
 const Sequelize = require('sequelize');
 
-const sequelize = new Sequelize("prueba1", "root", "", {
-    host: "localhost",
-    dialect: "mysql",
-    dir: "./prueba1.sql",
-});
+// const sequelize = new Sequelize("prueba1", "root", "", {
+//     host: "localhost",
+//     dialect: "mysql",
+//     dir: "./prueba1.sql",
+// });
 
 
-const db = {}; //?
-db.Sequelize = Sequelize; //?
-db.sequelize = sequelize; //?
-db.sequelize.sync(); //?
+// const db = {}; //?
+// db.Sequelize = Sequelize; //?
+// db.sequelize = sequelize; //?
+// db.sequelize.sync(); //?
 
-let prueba = db;
-console.log(prueba);
+// let prueba = db;
+// console.log(prueba);
 
 
 
@@ -49,19 +49,89 @@ console.log(prueba);
 let date = moment().format("DD-MM-YYYY");
 let time = moment().format("HH:mm");
 
-// server.use(cors);
+// server.use(cors); //reviar que tiene que ir
 server.use(bodyParser.json());
 
 server.listen(3000, () => {
     console.log("Servidor iniciado...");
 });
 
-let validateUser = middlewares.validateUser;
-let validateAdmin = middlewares.validateAdmin;
-let validateSameUser = middlewares.validateSameUser;
+// let validateUser = middlewares.validateUser;
+// let validateAdmin = middlewares.validateAdmin;
+// let validateSameUser = middlewares.validateSameUser;
 //agregar respuestas de errores y codigos exito/error y middlewares (token y same user)
 
 //sacar request params de usuarios que no hagan falta en este archivo porque estan en los middlewares
+
+
+//----------------------------middlewares
+
+function splitToken(token) {
+    try {
+        let getToken = token.split(' ')[1];
+        return getToken;
+    } catch(error) {
+        return false;
+    }
+}
+
+const validateUser = (request, response, next) => { //revisar
+    
+    let Token = request.headers.authorization;
+
+    console.log(request.path);
+
+    const token =  splitToken(Token);
+    console.log(token);
+
+    if(!token) {
+        response.status(401).json({msj: 'Token missing'});
+        return;
+    }
+
+    
+    try { //revisar funcionamiento
+        
+        let verifyToken = jwt.verify(token, signature);
+
+        
+        // if(decodedToken){
+            request.userId = verifyToken.id;
+            request.admin = verifyToken.admin;
+            console.log(verifyToken);
+            console.log(request.userId);
+            console.log(request.admin); 
+            next();
+            // }else{
+                //     throw "No permmision"; //??
+                // }
+    } catch (error) {
+        response.status(401).json({msj: 'Invalid login'}); //cambiar mensaje
+    }                  
+}
+
+// const validateSameUser = (request, response, next) => {
+//     const id = request.params.id;
+
+//     if(request.userId == id) {
+//         next();
+//     } else {
+//         response.status(403).json({msj: 'forbidden'}); //cambiar mensaje
+//     }
+// }
+
+
+//validar admin
+const validateAdmin = (request, response, next) => {
+    if(request.admin) {
+        next();
+    } else {
+        response.status(403).json({msj: 'forbidden'}); //cambiar mensaje
+    }
+}
+
+
+//--------------------------------------
 
 //---------------productos
 
@@ -161,7 +231,7 @@ server.get('/users', validateUser, validateAdmin, (request, response) => {
     response.json(usersPublic);
 });
 
-server.get('/users/:id', validateUser, validateSameUser, (request, response) => {
+server.get('/users/:id', validateUser, (request, response) => {
 
     // const id = request.params.id;
     const id = request.userId;
@@ -184,7 +254,7 @@ server.get('/users/:id', validateUser, validateSameUser, (request, response) => 
     });
 });
 
-server.put('/users/:id', validateUser, validateSameUser, (request, response) => { //204 para put?
+server.put('/users/:id', validateUser, (request, response) => { //204 para put?
     // const id = request.params.id;
     const id = request.userId;
     let data = request.body;
@@ -228,7 +298,7 @@ server.put('/users/:id', validateUser, validateSameUser, (request, response) => 
     
 });
 
-server.delete('/users/:id', validateUser, validateSameUser, (request, response) => {
+server.delete('/users/:id', validateUser, (request, response) => {
     // const id = request.params.id;
     const id = request.userId;
     
@@ -315,7 +385,7 @@ server.post('/orders', validateUser, (request, response) => {
 
 
 
-server.get('/users/:id/orders', validateUser, validateSameUser, (request, response) => {
+server.get('/users/:id/orders', validateUser, (request, response) => {
     // const id = request.params.id;
     const id = request.userId;
 
