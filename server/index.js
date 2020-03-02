@@ -12,10 +12,38 @@ const signature = middlewares.signature; //revisar que funcione
 
 // let newMsg = middlewares.funciona("hola, caro");
 
-//libreria routes
+//libreria routes?
+// var corsOptions = {
+//     origin: "http://localhost:8081"
+//   };
+//app.use(cors(corsOptions));
 
 //npm i mysql
 //definir array funciones que
+
+
+//---------------------
+
+const Sequelize = require('sequelize');
+
+const sequelize = new Sequelize("prueba1", "root", "", {
+    host: "localhost",
+    dialect: "mysql",
+    dir: "./prueba1.sql",
+});
+
+
+const db = {}; //?
+db.Sequelize = Sequelize; //?
+db.sequelize = sequelize; //?
+db.sequelize.sync(); //?
+
+let prueba = db;
+console.log(prueba);
+
+
+
+//--------------------
 
 
 let date = moment().format("DD-MM-YYYY");
