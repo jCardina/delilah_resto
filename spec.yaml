@@ -6,7 +6,7 @@ info:
   version: 1.0.0
   
 servers:
-  - url: https://api.delilah.com/v1
+  - url: https://api.delilah.com/v1 #sacar?
   
 tags:
 - name: "Products"
@@ -24,7 +24,7 @@ paths:
     get:
       tags:
         - "Products"
-      summary: Returns a list of products.
+      summary: "Returns a list of products."
       security:
         - tokenAuthorization: []
       parameters:
@@ -35,7 +35,7 @@ paths:
             type: string
       responses:
         '200':
-          description: JSON array of products
+          description: "JSON array of products"
           content:
             application/json:
               schema: 
@@ -54,16 +54,16 @@ paths:
                     photoUrl:
                       type: string
         '400':
-          description: Bad request
+          description: "Bad request"
         '401':
           $ref: '#/components/responses/tokenMissing'
         '500':
-          description: Internal server error
+          description: "Internal server error"
                   
     post:
       tags:
         - "Products"
-      summary: Creates a product.
+      summary: "Creates a product."
       security:
         - tokenAuthorization: []
       parameters:
@@ -90,7 +90,7 @@ paths:
                   type: string
       responses: 
         '201':
-          description: Product created
+          description: "Product created"
           content:
             application/json:
               schema: 
@@ -107,15 +107,16 @@ paths:
                   photoUrl:
                     type: string
         '400':
-          description: Bad request
+          description: "Bad request"
         '401':
           $ref: '#/components/responses/tokenMissing'
         '409':
-          description: Product already exists
+          description: "Product already exists"
         '500':
-          description: Internal server error
+          description: "Internal server error"
           
-                  
+   #agregar comillas a las descripciones y summaries   
+   #hacer esquema de producto y de usuario
   /products/{productId}:
     get: #hace falta?
       tags:
