@@ -9,10 +9,13 @@ const middlewares = require('./middlewares');
 const signature = "token_Generator_3402921GtFDnL";
 // const signature = middlewares.signature; //revisar que funcione
 
+//get pedidos trae todos los que no estan entregados
 
-// let newMsg = middlewares.funciona("hola, caro");
 
-//libreria routes?
+
+// select md5("contraseña") para encriptar
+
+//libreria routes para no tener toda la estructura en el mismo archivo
 // var corsOptions = {
 //     origin: "http://localhost:8081"
 //   };
@@ -26,20 +29,61 @@ const signature = "token_Generator_3402921GtFDnL";
 
 const Sequelize = require('sequelize');
 
-// const sequelize = new Sequelize("prueba1", "root", "", {
-//     host: "localhost",
-//     dialect: "mysql",
-//     dir: "./prueba1.sql",
+const sequelize = new Sequelize("delilah_db", "root", "", {
+    host: "localhost",
+    dialect: "mysql",
+});
+
+
+sequelize.query("SELECT name, user_name, admin WHERE id < ? IF( admin = ?, ?, ?) AS admin FROM users",
+    {replacements: [3, 1, "true", "false"], type: sequelize.QueryTypes.SELECT}
+).then(function(data) {
+    let userList = {data: data};
+    console.log(userList);
+});
+
+let newOrder = {};
+
+  sequelize.query("SELECT * FROM orders WHERE id = ?",
+      {replacements: [1], type: sequelize.QueryTypes.SELECT}
+  ).then(function(data) {
+    //   console.log(data);
+    newOrder.id = data[0].id;
+    newOrder.total = data[0].total;
+    newOrder.user_id = data[0].user_id;
+    newOrder.payment_method = data[0].payment_method;
+    newOrder.time = data[0].time;
+    newOrder.date = data[0].date;
+    newOrder.status = data[0].status;
+    // console.log(data);
+  });
+
+  let idPrueba = 1
+
+sequelize.query("SELECT op.id, op.quantity FROM order_products op JOIN orders o on o.id = op.order_id JOIN products p on p.id = op.product_id WHERE o.id = ?", //segundo join no hace falta
+    {replacements: [idPrueba], type: sequelize.QueryTypes.SELECT}
+).then(function(data) {
+    // console.log(data);
+    
+    newOrder.products = data; 
+
+    console.log(newOrder);
+    
+});
+
+sequelize.query("SELECT md5(?)",
+    {replacements: ["123"], type: sequelize.QueryTypes.SELECT}
+).then(function(data) {
+    console.log(data);    
+});
+
+// sequelize.query("INSERT INTO users (name, user_name, email, address, phone_number, password, admin) VALUES(?, ?, ?, ?, ?, ?, ?)",
+// {replacements: ["Carla Gomez", "car_goo", "carlagomez@gmal.com", "Peru 333", 23495955, "passs", 1]}
+// ).then(function(data) {
+//     console.log("user created");
 // });
 
 
-// const db = {}; //?
-// db.Sequelize = Sequelize; //?
-// db.sequelize = sequelize; //?
-// db.sequelize.sync(); //?
-
-// let prueba = db;
-// console.log(prueba);
 
 
 
@@ -49,7 +93,7 @@ const Sequelize = require('sequelize');
 let date = moment().format("DD-MM-YYYY");
 let time = moment().format("HH:mm");
 
-// server.use(cors); //reviar que tiene que ir
+// server.use(cors);
 server.use(bodyParser.json());
 
 server.listen(3000, () => {
