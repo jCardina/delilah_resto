@@ -35,11 +35,24 @@ const sequelize = new Sequelize("delilah_db", "root", "", {
 });
 
 
-sequelize.query("SELECT name, user_name, admin WHERE id < ? IF( admin = ?, ?, ?) AS admin FROM users",
-    {replacements: [3, 1, "true", "false"], type: sequelize.QueryTypes.SELECT}
+sequelize.query("SELECT name, user_name, admin FROM users WHERE id < ?",
+    {replacements: [3], type: sequelize.QueryTypes.SELECT}
 ).then(function(data) {
     let userList = {data: data};
-    console.log(userList);
+    // console.log(userList);
+});
+
+sequelize.query("SELECT name, user_name, admin FROM users",
+    {type: sequelize.QueryTypes.SELECT}
+).then(function(data) {
+    data.forEach(element => {
+        if (element.admin == 0) {
+            element.admin = false;
+        } else {
+            element.admin = true;
+        }
+    });
+    console.log(data);
 });
 
 let newOrder = {};
@@ -67,14 +80,14 @@ sequelize.query("SELECT op.id, op.quantity FROM order_products op JOIN orders o 
     
     newOrder.products = data; 
 
-    console.log(newOrder);
+    // console.log(newOrder);
     
 });
 
 sequelize.query("SELECT md5(?)",
     {replacements: ["123"], type: sequelize.QueryTypes.SELECT}
 ).then(function(data) {
-    console.log(data);    
+    // console.log(data);    
 });
 
 // sequelize.query("INSERT INTO users (name, user_name, email, address, phone_number, password, admin) VALUES(?, ?, ?, ?, ?, ?, ?)",
