@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 04, 2020 at 01:27 AM
+-- Generation Time: Mar 04, 2020 at 06:08 AM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.2
 
@@ -98,7 +98,7 @@ INSERT INTO `products` (`id`, `name`, `keyword`, `price`, `photo_url`) VALUES
 CREATE TABLE `users` (
   `id` int(10) UNSIGNED NOT NULL,
   `name` text COLLATE utf8_unicode_ci NOT NULL,
-  `user_name` text COLLATE utf8_unicode_ci NOT NULL,
+  `username` text COLLATE utf8_unicode_ci NOT NULL,
   `email` text COLLATE utf8_unicode_ci NOT NULL,
   `address` text COLLATE utf8_unicode_ci NOT NULL,
   `phone_number` int(10) UNSIGNED NOT NULL,
@@ -110,8 +110,8 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `user_name`, `email`, `address`, `phone_number`, `password`, `admin`) VALUES
-(1, 'Pablo Lopez', 'pabloLop', 'pablolopez@gmail.com', 'Doblas 243', 232532624, 'passW', 1),
+INSERT INTO `users` (`id`, `name`, `username`, `email`, `address`, `phone_number`, `password`, `admin`) VALUES
+(1, 'Pablo Lopez', 'pabloLop', 'pablolopez@gmail.com', 'Doblas 243', 232532624, '3aade067651271a4bc664428236a72de', 1),
 (2, 'Maria Gonzalez', 'marGon', 'mariagonzalez@gmail.com', 'Peru 5870', 34235246, 'passWoo', 0),
 (3, 'Carla Gomez', 'car_goo', 'carlagomez@gmal.com', 'Peru 333', 23495955, 'passs', 1);
 
@@ -142,7 +142,7 @@ ALTER TABLE `products`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `user_name` (`user_name`,`email`) USING HASH;
+  ADD UNIQUE KEY `user_name` (`username`,`email`) USING HASH;
 
 --
 -- AUTO_INCREMENT for dumped tables
