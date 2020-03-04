@@ -4,25 +4,14 @@ const bodyParser = require('body-parser');
 const moment = require('moment');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const middlewares = require('./middlewares');
 
 const signature = "token_Generator_3402921GtFDnL";
-// const signature = middlewares.signature; //revisar que funcione
 
 //get pedidos trae todos los que no estan entregados
-
-
 
 // select md5("contraseña") para encriptar
 
 //libreria routes para no tener toda la estructura en el mismo archivo
-// var corsOptions = {
-//     origin: "http://localhost:8081"
-//   };
-//app.use(cors(corsOptions));
-
-//npm i mysql
-//definir array funciones que
 
 
 //---------------------
@@ -34,61 +23,60 @@ const sequelize = new Sequelize("delilah_db", "root", "", {
     dialect: "mysql",
 });
 
+//--------------------modelos queries
+// sequelize.query("SELECT name, user_name, admin FROM users WHERE id < ?",
+//     {replacements: [3], type: sequelize.QueryTypes.SELECT}
+// ).then(function(data) {
+//     let userList = {data: data};
+//     // console.log(userList);
+// });
 
-sequelize.query("SELECT name, user_name, admin FROM users WHERE id < ?",
-    {replacements: [3], type: sequelize.QueryTypes.SELECT}
-).then(function(data) {
-    let userList = {data: data};
-    // console.log(userList);
-});
+// sequelize.query("SELECT name, user_name, admin FROM users",
+//     {type: sequelize.QueryTypes.SELECT}
+// ).then(function(data) {
+//     data.forEach(element => {
+//         if (element.admin == 0) {
+//             element.admin = false;
+//         } else {
+//             element.admin = true;
+//         }
+//     });
+//     console.log(data);
+// });
 
-sequelize.query("SELECT name, user_name, admin FROM users",
-    {type: sequelize.QueryTypes.SELECT}
-).then(function(data) {
-    data.forEach(element => {
-        if (element.admin == 0) {
-            element.admin = false;
-        } else {
-            element.admin = true;
-        }
-    });
-    console.log(data);
-});
+// let newOrder = {};
 
-let newOrder = {};
+//   sequelize.query("SELECT * FROM orders WHERE id = ?",
+//       {replacements: [1], type: sequelize.QueryTypes.SELECT}
+//   ).then(function(data) {
+//     newOrder.id = data[0].id;
+//     newOrder.total = data[0].total;
+//     newOrder.user_id = data[0].user_id;
+//     newOrder.payment_method = data[0].payment_method;
+//     newOrder.time = data[0].time;
+//     newOrder.date = data[0].date;
+//     newOrder.status = data[0].status;
+//     // console.log(data);
+//   });
 
-  sequelize.query("SELECT * FROM orders WHERE id = ?",
-      {replacements: [1], type: sequelize.QueryTypes.SELECT}
-  ).then(function(data) {
-    //   console.log(data);
-    newOrder.id = data[0].id;
-    newOrder.total = data[0].total;
-    newOrder.user_id = data[0].user_id;
-    newOrder.payment_method = data[0].payment_method;
-    newOrder.time = data[0].time;
-    newOrder.date = data[0].date;
-    newOrder.status = data[0].status;
-    // console.log(data);
-  });
+//   let idPrueba = 1
 
-  let idPrueba = 1
-
-sequelize.query("SELECT op.id, op.quantity FROM order_products op JOIN orders o on o.id = op.order_id JOIN products p on p.id = op.product_id WHERE o.id = ?", //segundo join no hace falta
-    {replacements: [idPrueba], type: sequelize.QueryTypes.SELECT}
-).then(function(data) {
-    // console.log(data);
+// sequelize.query("SELECT op.id, op.quantity FROM order_products op JOIN orders o on o.id = op.order_id JOIN products p on p.id = op.product_id WHERE o.id = ?", //segundo join no hace falta
+//     {replacements: [idPrueba], type: sequelize.QueryTypes.SELECT}
+// ).then(function(data) {
+//     // console.log(data);
     
-    newOrder.products = data; 
+//     newOrder.products = data; 
 
-    // console.log(newOrder);
+//     // console.log(newOrder);
     
-});
+// });
 
-sequelize.query("SELECT md5(?)",
-    {replacements: ["123"], type: sequelize.QueryTypes.SELECT}
-).then(function(data) {
-    // console.log(data);    
-});
+// sequelize.query("SELECT md5(?)",
+//     {replacements: ["123"], type: sequelize.QueryTypes.SELECT}
+// ).then(function(data) {
+//     // console.log(data);    
+// });
 
 // sequelize.query("INSERT INTO users (name, user_name, email, address, phone_number, password, admin) VALUES(?, ?, ?, ?, ?, ?, ?)",
 // {replacements: ["Carla Gomez", "car_goo", "carlagomez@gmal.com", "Peru 333", 23495955, "passs", 1]}
@@ -97,25 +85,20 @@ sequelize.query("SELECT md5(?)",
 // });
 
 
-
-
-
 //--------------------
 
 
-let date = moment().format("DD-MM-YYYY");
-let time = moment().format("HH:mm");
+let date = moment().format("YYYY-MM-DD");
+let time = moment().format("HH:mm:ss");
 
-// server.use(cors);
+server.use(cors());
 server.use(bodyParser.json());
 
 server.listen(3000, () => {
     console.log("Servidor iniciado...");
 });
 
-// let validateUser = middlewares.validateUser;
-// let validateAdmin = middlewares.validateAdmin;
-// let validateSameUser = middlewares.validateSameUser;
+
 //agregar respuestas de errores y codigos exito/error y middlewares (token y same user)
 
 //sacar request params de usuarios que no hagan falta en este archivo porque estan en los middlewares
@@ -379,30 +362,58 @@ server.delete('/users/:id', validateUser, (request, response) => {
 //agregar try catch a todos los endpoints
 
 
+
 //revisar
 server.post('/login', (request, response) => {
-    let userFound = false;
 
     console.log(request.body);
-    let {user, pass} = request.body;
+    let {user, password} = request.body;
     console.log(user);
-    
-    users.forEach( element => {
-        
-        if((element.userName == user && element.password == pass) || (element.email == user && element.password == pass)){
-            let userInfo = {id: element.id, admin: element.admin};
-            let token = jwt.sign(userInfo, signature);
-            userFound = true;
-            response.status(200).json({
-                token: token,
-                userId: element.id
-            });
-        }
-    });
 
-    if(!userFound) {
-        response.status(401).json({msj: 'Wrong user or password'}); //agregar validaciones de bad request cuando las keys faltan o estan mal escritas
+    async function log_in() {
+
+        let encrypt = await sequelize.query("SELECT md5(?)",
+            {replacements: [password], type: sequelize.QueryTypes.SELECT}
+        ).then(function(data) {
+
+            let hash = Object.values(data[0])[0];
+            console.log(hash);
+            // let hash = data[0].password;
+            // console.log(data[0].hash);
+            // console.log(hash);
+            return hash;
+        });
+
+        password = encrypt;
+        console.log(password);
+
+    
+        sequelize.query("SELECT id, username, email, admin, password FROM users WHERE (username = ? AND password = ?) OR (email = ? AND password = ?)",
+            {replacements: [user, password, user, password], type: sequelize.QueryTypes.SELECT}
+        ).then(function(data) {
+            console.log(data);
+            try {
+
+                if (data[0].admin == 0) {
+                    data[0].admin = false;
+                } else {
+                    data[0].admin = true; //pasar a funcion aparte?
+                }
+
+                let userInfo = {id: data[0].id, admin: data[0].admin};
+                console.log(userInfo);
+                let token = jwt.sign(userInfo, signature);
+            
+                response.status(200).json({token: token});
+            } catch {
+                response.status(401).json({msj: 'Wrong user or password'}); //agregar validaciones de bad request cuando las keys faltan o estan mal escritas
+            }  
+        });
+    
     }
+
+    log_in();
+    
  });
 
 //revisar que los validate same user sean en endpoints donde el path tenga el id del usuario y no del pedido o ninguno
