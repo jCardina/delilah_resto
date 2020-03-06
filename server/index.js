@@ -7,9 +7,6 @@ const cors = require('cors');
 
 const signature = "token_Generator_3402921GtFDnL";
 
-//get pedidos trae todos los que no estan entregados
-
-// select md5("contraseña") para encriptar
 
 //libreria routes para no tener toda la estructura en el mismo archivo
 
@@ -44,34 +41,34 @@ const sequelize = new Sequelize("delilah_db", "root", "", {
 //     console.log(data);
 // });
 
-let newOrder = {};
+// let newOrder = {};
 
-  sequelize.query("SELECT * FROM orders WHERE id = ?",
-      {replacements: [1], type: sequelize.QueryTypes.SELECT}
-  ).then(function(data) {
-    newOrder.id = data[0].id;
-    newOrder.total = data[0].total;
-    newOrder.user_id = data[0].user_id;
-    newOrder.payment_method = data[0].payment_method;
-    newOrder.time = data[0].time;
-    newOrder.date = data[0].date;
-    newOrder.status = data[0].status;
-    // console.log(data);
-  });
+//   sequelize.query("SELECT * FROM orders WHERE id = ?",
+//       {replacements: [1], type: sequelize.QueryTypes.SELECT}
+//   ).then(function(data) {
+//     newOrder.id = data[0].id;
+//     newOrder.total = data[0].total;
+//     newOrder.user_id = data[0].user_id;
+//     newOrder.payment_method = data[0].payment_method;
+//     newOrder.time = data[0].time;
+//     newOrder.date = data[0].date;
+//     newOrder.status = data[0].status;
+//     // console.log(data);
+//   });
 
 
 //order by para pedidos y limit y paginacion
 
-sequelize.query("SELECT op.product_id, op.quantity FROM order_products op JOIN orders o on o.id = op.order_id JOIN products p on p.id = op.product_id WHERE o.id = ?", //segundo join no hace falta
-    {replacements: [1], type: sequelize.QueryTypes.SELECT}
-).then(function(data) {
-    // console.log(data);
+// sequelize.query("SELECT op.product_id, op.quantity FROM order_products op JOIN orders o on o.id = op.order_id JOIN products p on p.id = op.product_id WHERE o.id = ?", //segundo join no hace falta
+//     {replacements: [1], type: sequelize.QueryTypes.SELECT}
+// ).then(function(data) {
+//     // console.log(data);
     
-    newOrder.products = data; 
+//     newOrder.products = data; 
 
-    console.log(newOrder);
+//     console.log(newOrder);
     
-});
+// });
 
 // sequelize.query("SELECT md5(?)",
 //     {replacements: ["123"], type: sequelize.QueryTypes.SELECT}
@@ -151,20 +148,11 @@ const validateUser = (request, response, next) => { //revisar
     }                  
 }
 
-// const validateSameUser = (request, response, next) => {
-//     const id = request.params.id;
-
-//     if(request.userId == id) {
-//         next();
-//     } else {
-//         response.status(403).json({msj: 'forbidden'}); //cambiar mensaje
-//     }
-// }
 
 
 //validar admin
 const validateAdmin = (request, response, next) => {
-    if(request.admin) {
+    if(request.admin == 'true') {
         next();
     } else {
         response.status(403).json({msj: 'forbidden'}); //cambiar mensaje
@@ -178,7 +166,11 @@ const validateAdmin = (request, response, next) => {
 
 server.get('/products', validateUser, (request, response) => {
 
-        response.json(products);
+        sequelize.query("SELECT * FROM products",
+        {type: sequelize.QueryTypes.SELECT}
+        ).then(data => {
+            response.json({data: data});
+        });
 });
 
 server.post('/products', validateUser, validateAdmin, (request, response) => {
@@ -205,11 +197,11 @@ server.post('/products', validateUser, validateAdmin, (request, response) => {
 server.get('/products/:id',validateUser, (request, response) => { //hace falta?
     const id = request.params.id;
     
-    products.forEach(element => {
-        if(element.id == id) {
-            response.json(element);
-        }
-    });
+    sequelize.query("SELECT * FROM products WHERE id = ?",
+        {replacements: [id], type: sequelize.QueryTypes.SELECT}
+        ).then(data => {
+            response.json({data: data});
+        });
     
 });
 
@@ -255,47 +247,26 @@ server.delete('/products/:id', validateUser, validateAdmin, (request, response) 
 //-------------usuarios
 
 server.get('/users', validateUser, validateAdmin, (request, response) => {
-    let usersPublic = [];
-
-    users.forEach (element => {
-        let userData = {
-            id: element.id,
-            name: element.name,
-            userName: element.userName,
-            email: element.email,
-            address: element.address,
-            phoneNumber: element.phoneNumber,
-            admin: element.admin
-        }
-        usersPublic.push(userData);
-    });
-    response.json(usersPublic);
+    
+    sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users",
+        {type: sequelize.QueryTypes.SELECT}
+        ).then(data => {
+            response.json({data: data});
+        });
 });
 
 server.get('/users/:id', validateUser, (request, response) => {
 
-    // const id = request.params.id;
-    const id = request.userId;
-    users.forEach (element => {
-    
-        if(element.id == id) {
+    const id = request.params.id;
 
-            let userData = {
-                id: element.id,
-                name: element.name,
-                userName: element.userName,
-                email: element.email,
-                address: element.address,
-                phoneNumber: element.phoneNumber,
-                admin: element.admin
-            }
-    
-            response.json(userData);
-        }
-    });
+    sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
+        {replacements: [id], type: sequelize.QueryTypes.SELECT}
+        ).then(data => {
+            response.json({data: data});
+        });
 });
 
-server.put('/users/:id', validateUser, (request, response) => { //204 para put?
+server.put('/users/:id', validateUser, (request, response) => { //204 para put? CAMBIAR POR ME
     // const id = request.params.id;
     const id = request.userId;
     let data = request.body;
@@ -339,7 +310,7 @@ server.put('/users/:id', validateUser, (request, response) => { //204 para put?
     
 });
 
-server.delete('/users/:id', validateUser, (request, response) => {
+server.delete('/users/:id', validateUser, (request, response) => { 
     // const id = request.params.id;
     const id = request.userId;
     
@@ -369,7 +340,7 @@ server.post('/login', (request, response) => {
 
     console.log(request.body);
     let {user, password} = request.body;
-    console.log(user);
+    // console.log(user);
 
     async function log_in() {
 
@@ -379,9 +350,7 @@ server.post('/login', (request, response) => {
 
             let hash = Object.values(data[0])[0];
             console.log(hash);
-            // let hash = data[0].password;
-            // console.log(data[0].hash);
-            // console.log(hash);
+            
             return hash;
         });
 
@@ -391,7 +360,7 @@ server.post('/login', (request, response) => {
     
         sequelize.query("SELECT id, username, email, admin, password, IF(admin, 'true', 'false') AS admin FROM users WHERE (username = ? AND password = ?) OR (email = ? AND password = ?)",
             {replacements: [user, password, user, password], type: sequelize.QueryTypes.SELECT}
-        ).then(function(data) {
+        ).then(data => {
             console.log(data);
             try {
 
@@ -416,7 +385,38 @@ server.post('/login', (request, response) => {
 //-----------------pedidos
 
 server.get('/orders', validateUser, validateAdmin, (request, response) => {
-    response.json(orders);
+    
+    let orders = [];
+
+    async function getOrders() {
+
+        await sequelize.query("SELECT * FROM orders ORDER BY id DESC",
+        {type: sequelize.QueryTypes.SELECT}
+        ).then(data => {
+            orders = data;
+            console.log(data);
+        });
+        
+           
+        for (i = 0; i < orders.length; i++) {
+
+            const order = orders[i];
+            const products = await sequelize.query("SELECT op.product_id, op.price, op.quantity FROM order_products op WHERE op.order_id = ?",
+            {replacements: [order.id], type: sequelize.QueryTypes.SELECT}
+            ).then(function(data) {
+
+                order.products = data;
+
+            });
+        }
+
+        
+        response.json({data: orders});
+    }
+
+    getOrders();
+
+
 });
 
 
