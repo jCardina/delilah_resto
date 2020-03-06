@@ -44,33 +44,34 @@ const sequelize = new Sequelize("delilah_db", "root", "", {
 //     console.log(data);
 // });
 
-// let newOrder = {};
+let newOrder = {};
 
-//   sequelize.query("SELECT * FROM orders WHERE id = ?",
-//       {replacements: [1], type: sequelize.QueryTypes.SELECT}
-//   ).then(function(data) {
-//     newOrder.id = data[0].id;
-//     newOrder.total = data[0].total;
-//     newOrder.user_id = data[0].user_id;
-//     newOrder.payment_method = data[0].payment_method;
-//     newOrder.time = data[0].time;
-//     newOrder.date = data[0].date;
-//     newOrder.status = data[0].status;
-//     // console.log(data);
-//   });
+  sequelize.query("SELECT * FROM orders WHERE id = ?",
+      {replacements: [1], type: sequelize.QueryTypes.SELECT}
+  ).then(function(data) {
+    newOrder.id = data[0].id;
+    newOrder.total = data[0].total;
+    newOrder.user_id = data[0].user_id;
+    newOrder.payment_method = data[0].payment_method;
+    newOrder.time = data[0].time;
+    newOrder.date = data[0].date;
+    newOrder.status = data[0].status;
+    // console.log(data);
+  });
 
-//   let idPrueba = 1
 
-// sequelize.query("SELECT op.id, op.quantity FROM order_products op JOIN orders o on o.id = op.order_id JOIN products p on p.id = op.product_id WHERE o.id = ?", //segundo join no hace falta
-//     {replacements: [idPrueba], type: sequelize.QueryTypes.SELECT}
-// ).then(function(data) {
-//     // console.log(data);
+//order by para pedidos y limit y paginacion
+
+sequelize.query("SELECT op.product_id, op.quantity FROM order_products op JOIN orders o on o.id = op.order_id JOIN products p on p.id = op.product_id WHERE o.id = ?", //segundo join no hace falta
+    {replacements: [1], type: sequelize.QueryTypes.SELECT}
+).then(function(data) {
+    // console.log(data);
     
-//     newOrder.products = data; 
+    newOrder.products = data; 
 
-//     // console.log(newOrder);
+    console.log(newOrder);
     
-// });
+});
 
 // sequelize.query("SELECT md5(?)",
 //     {replacements: ["123"], type: sequelize.QueryTypes.SELECT}
@@ -84,7 +85,7 @@ const sequelize = new Sequelize("delilah_db", "root", "", {
 //     console.log("user created");
 // });
 
-
+//agregar precio a pedido_productos y sacar total depedidos(se calcula en backend)
 //--------------------
 
 
@@ -388,17 +389,11 @@ server.post('/login', (request, response) => {
         console.log(password);
 
     
-        sequelize.query("SELECT id, username, email, admin, password FROM users WHERE (username = ? AND password = ?) OR (email = ? AND password = ?)",
+        sequelize.query("SELECT id, username, email, admin, password, IF(admin, 'true', 'false') AS admin FROM users WHERE (username = ? AND password = ?) OR (email = ? AND password = ?)",
             {replacements: [user, password, user, password], type: sequelize.QueryTypes.SELECT}
         ).then(function(data) {
             console.log(data);
             try {
-
-                if (data[0].admin == 0) {
-                    data[0].admin = false;
-                } else {
-                    data[0].admin = true; //pasar a funcion aparte?
-                }
 
                 let userInfo = {id: data[0].id, admin: data[0].admin};
                 console.log(userInfo);
