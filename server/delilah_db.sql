@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 04, 2020 at 06:08 AM
+-- Generation Time: Mar 06, 2020 at 04:14 AM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.2
 
@@ -56,6 +56,7 @@ CREATE TABLE `order_products` (
   `id` int(10) UNSIGNED NOT NULL,
   `order_id` int(10) UNSIGNED NOT NULL,
   `product_id` int(10) UNSIGNED NOT NULL,
+  `price` double UNSIGNED NOT NULL,
   `quantity` int(10) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -63,9 +64,9 @@ CREATE TABLE `order_products` (
 -- Dumping data for table `order_products`
 --
 
-INSERT INTO `order_products` (`id`, `order_id`, `product_id`, `quantity`) VALUES
-(1, 1, 1, 3),
-(2, 1, 2, 4);
+INSERT INTO `order_products` (`id`, `order_id`, `product_id`, `price`, `quantity`) VALUES
+(1, 1, 1, 200, 3),
+(2, 1, 2, 150, 4);
 
 -- --------------------------------------------------------
 
@@ -75,10 +76,10 @@ INSERT INTO `order_products` (`id`, `order_id`, `product_id`, `quantity`) VALUES
 
 CREATE TABLE `products` (
   `id` int(10) UNSIGNED NOT NULL,
-  `name` text COLLATE utf8_unicode_ci NOT NULL,
-  `keyword` text COLLATE utf8_unicode_ci NOT NULL,
+  `name` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
+  `keyword` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
   `price` int(10) UNSIGNED NOT NULL,
-  `photo_url` text COLLATE utf8_unicode_ci NOT NULL
+  `photo_url` varchar(300) COLLATE utf8_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
@@ -97,12 +98,12 @@ INSERT INTO `products` (`id`, `name`, `keyword`, `price`, `photo_url`) VALUES
 
 CREATE TABLE `users` (
   `id` int(10) UNSIGNED NOT NULL,
-  `name` text COLLATE utf8_unicode_ci NOT NULL,
-  `username` text COLLATE utf8_unicode_ci NOT NULL,
-  `email` text COLLATE utf8_unicode_ci NOT NULL,
-  `address` text COLLATE utf8_unicode_ci NOT NULL,
-  `phone_number` int(10) UNSIGNED NOT NULL,
-  `password` text COLLATE utf8_unicode_ci NOT NULL,
+  `name` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
+  `username` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
+  `email` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
+  `address` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `phone_number` int(10) UNSIGNED DEFAULT NULL,
+  `password` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
   `admin` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -111,9 +112,10 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `username`, `email`, `address`, `phone_number`, `password`, `admin`) VALUES
-(1, 'Pablo Lopez', 'pabloLop', 'pablolopez@gmail.com', 'Doblas 243', 232532624, '3aade067651271a4bc664428236a72de', 1),
-(2, 'Maria Gonzalez', 'marGon', 'mariagonzalez@gmail.com', 'Peru 5870', 34235246, 'passWoo', 0),
-(3, 'Carla Gomez', 'car_goo', 'carlagomez@gmal.com', 'Peru 333', 23495955, 'passs', 1);
+(1, 'Pablo Lopez', 'pabloLop', 'pablolopez@gmail.com', NULL, NULL, '3aade067651271a4bc664428236a72de', 1),
+(2, 'Maria Gonzalez', 'marGon', 'mariagonzalez@gmail.com', 'Peru 5870', 34235246, '05ca84ed54a1be215a12832ce4ad454f', 0),
+(3, 'Carla Gomez', 'car_goo', 'carlagomez@gmal.com', NULL, NULL, 'd596618d8e4c569c277096157bf8ecb9', 1),
+(6, 'Federico Perez', 'fedPe', 'federicoperez@hotmail.com', 'Prudan 3429', 44664699, 'e48b981fb62db33b98a27fc6cf8bf40a\r\n3291d3e75434f2d18191fd6fd6', 0);
 
 --
 -- Indexes for dumped tables
@@ -135,14 +137,16 @@ ALTER TABLE `order_products`
 -- Indexes for table `products`
 --
 ALTER TABLE `products`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `keyword` (`keyword`),
+  ADD UNIQUE KEY `name` (`name`);
 
 --
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `user_name` (`username`,`email`) USING HASH;
+  ADD UNIQUE KEY `user_name` (`username`,`email`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -170,7 +174,7 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
