@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 06, 2020 at 04:14 AM
+-- Generation Time: Mar 06, 2020 at 06:14 AM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.2
 
@@ -44,7 +44,8 @@ CREATE TABLE `orders` (
 
 INSERT INTO `orders` (`id`, `user_id`, `total`, `payment_method`, `time`, `date`, `status`) VALUES
 (1, 2, 350.6, 'tarjeta', '16:16:28', '2020-03-11', 'nuevo'),
-(2, 2, 500.5, 'efectivo', '13:20:45', '2020-03-02', 'confirmado');
+(2, 2, 500.5, 'efectivo', '13:20:45', '2020-03-02', 'confirmado'),
+(3, 6, 300, 'efectivo', '01:05:18', '2020-03-04', 'nuevo');
 
 -- --------------------------------------------------------
 
@@ -66,7 +67,8 @@ CREATE TABLE `order_products` (
 
 INSERT INTO `order_products` (`id`, `order_id`, `product_id`, `price`, `quantity`) VALUES
 (1, 1, 1, 200, 3),
-(2, 1, 2, 150, 4);
+(2, 1, 2, 150, 4),
+(3, 2, 1, 200, 2);
 
 -- --------------------------------------------------------
 
@@ -156,13 +158,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `order_products`
 --
 ALTER TABLE `order_products`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `products`
