@@ -110,7 +110,7 @@ form button {
 }
 
 
-#login {
+#signup {
 	display: none;
 }
 
@@ -118,4 +118,5 @@ form button {
 #signup form {
 	height: 500px;
 	padding-top: 20px;
+
 }
