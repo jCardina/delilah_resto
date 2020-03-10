@@ -200,26 +200,25 @@ server.get('/products/:id',validateUser, (request, response) => { //hace falta?
     sequelize.query("SELECT * FROM products WHERE id = ?",
         {replacements: [id], type: sequelize.QueryTypes.SELECT}
         ).then(data => {
-            response.json({data: data});
+            response.json({data: data[0]});
         });
     
 });
 
 server.put('/products/:id', validateUser, validateAdmin, (request, response) => { //204 para put?
     const id = request.params.id;
-    let {name, keyword, price, photoUrl} = request.body;
+    let {name, keyword, price, photo_url} = request.body;
 
-    products.forEach(element => {
-        if(element.id == id) {
+    sequelize.query("UPDATE products SET name = ?, keyword = ?, price = ?, photo_url = ? WHERE id = ?",
+    {replacements: [name, keyword, price, photo_url, id]}
+    ).then(function(data) {
 
-            element.name = name;
-            element.keyword = keyword;
-            element.price = price;
-            element.photoUrl = photoUrl;
+        sequelize.query("SELECT * FROM products WHERE id = ?",
+        {replacements: [id], type: sequelize.QueryTypes.SELECT}
+        ).then(function(data) {
+            response.json({data: data[0]}); //cambiar status code
+        });
 
-            response.json(element);
-            console.log(products);
-        }
     });
     
 });
@@ -255,16 +254,30 @@ server.get('/users', validateUser, validateAdmin, (request, response) => {
         });
 });
 
-server.get('/users/:id', validateUser, (request, response) => {
+server.get('/users/:id', validateUser, validateAdmin, (request, response) => {
 
     const id = request.params.id;
 
     sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
         {replacements: [id], type: sequelize.QueryTypes.SELECT}
         ).then(data => {
-            response.json({data: data});
+            response.json({data: data[0]});
         });
 });
+
+server.get('/me', validateUser, (request, response) => {
+
+    // const newid = request.userId; //volver
+    const id = request.userId;
+
+    sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
+        {replacements: [id], type: sequelize.QueryTypes.SELECT}
+        ).then(data => {
+            response.json({data: data[0]});
+        });
+});
+
+// agregar data envelope y revisar que si devuelve un objeto no este en array
 
 server.put('/users/:id', validateUser, (request, response) => { //204 para put? CAMBIAR POR ME
     // const id = request.params.id;
@@ -448,32 +461,106 @@ server.post('/orders', validateUser, (request, response) => {
 
 
 
-server.get('/users/:id/orders', validateUser, (request, response) => {
+server.get('/me/orders', validateUser, (request, response) => {
     // const id = request.params.id;
     const id = request.userId;
 
-    let userOrders = []
+    let userOrders = [];
     
-    orders.forEach(element => {
-        if(element.userId == id) {
-            userOrders.push(element);
-        }
-    });
+    async function getUserOrders() {
 
-    response.json(userOrders);
+        await sequelize.query("SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC",
+        {replacements: [id], type: sequelize.QueryTypes.SELECT}
+        ).then(data => {
+            userOrders = data;
+            console.log(data);
+        });
+        
+           
+        for (i = 0; i < userOrders.length; i++) {
+
+            const order = userOrders[i];
+            const products = await sequelize.query("SELECT op.product_id, op.price, op.quantity FROM order_products op WHERE op.order_id = ?",
+            {replacements: [order.id], type: sequelize.QueryTypes.SELECT}
+            ).then(function(data) {
+
+                order.products = data;
+
+            });
+        }
+
+        
+        response.json({data: userOrders});
+    }
+
+    getUserOrders();
+
     
 });
 
-server.get('/orders/:id', validateUser, (request, response) => { //revisar parte es el mismo usuario 
-    //hace falta este endpoint?
-    const id = request.params.id;
-    const reqUserId = request.userId;
+
+
+server.get('/me/orders/:id', validateUser, (request, response) => {
+    const orderId = request.params.id;
+    const userId = request.userId;
+
+    let userOrder = {};
     
-    orders.forEach(element => {
-        if(element.orderId == id && element.userId == reqUserId) {
-            response.json(element);
-        }
-    });
+    async function getUserOrder() {
+
+        await sequelize.query("SELECT * FROM orders WHERE user_id = ? AND id = ?",
+        {replacements: [userId, orderId], type: sequelize.QueryTypes.SELECT}
+        ).then(data => {
+            userOrder = data[0];
+            console.log(data);
+        });
+    
+        const products = await sequelize.query("SELECT op.product_id, op.price, op.quantity FROM order_products op WHERE op.order_id = ?",
+        {replacements: [orderId], type: sequelize.QueryTypes.SELECT}
+        ).then(function(data) {
+
+            userOrder.products = data;
+
+        });
+
+        
+        response.json({data: userOrder});
+    }
+
+    getUserOrder();
+
+    
+});
+
+server.get('/orders/:id', validateUser, validateAdmin, (request, response) => {
+    const id = request.params.id;
+    // const reqUserId = request.userId;
+    
+    async function getOrder() {
+
+        let order = {};
+
+        await sequelize.query("SELECT * FROM orders WHERE id =?",
+        {replacements: [id], type: sequelize.QueryTypes.SELECT}
+        ).then(data => {
+            order = data[0];
+            console.log(data);
+        });
+        
+
+        const products = await sequelize.query("SELECT op.product_id, op.price, op.quantity FROM order_products op WHERE op.order_id = ?",
+        {replacements: [id], type: sequelize.QueryTypes.SELECT}
+        ).then(function(data) {
+
+            order.products = data;
+
+        });
+        
+        
+        response.json({data: order});
+    }
+
+    getOrder();
     
 });
 
