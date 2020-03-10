@@ -18,7 +18,9 @@ tags:
  
 paths:
               #agregar code forbiden cuando no es usuario
-              #agregar delete orders?
+              #agrear users me orders id
+              #ambiar users me por solo me
+              #arreglar nombres keys compuesdtas por guion bajjo
   /products:
   
     get:
