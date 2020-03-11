@@ -1,7 +1,7 @@
 const express = require('express');
 const server = express();
 const bodyParser = require('body-parser');
-const moment = require('moment');
+const moment = require('moment'); //sacar?
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 
@@ -63,11 +63,11 @@ const sequelize = new Sequelize("delilah_db", "root", "", {
 //     {replacements: [1], type: sequelize.QueryTypes.SELECT}
 // ).then(function(data) {
 //     // console.log(data);
-    
+
 //     newOrder.products = data; 
 
 //     console.log(newOrder);
-    
+
 // });
 
 // sequelize.query("SELECT md5(?)",
@@ -108,74 +108,92 @@ function splitToken(token) {
     try {
         let getToken = token.split(' ')[1];
         return getToken;
-    } catch(error) {
+    } catch (error) {
         return false;
     }
 }
 
 const validateUser = (request, response, next) => { //revisar
-    
+
     let Token = request.headers.authorization;
 
     console.log(request.path);
 
-    const token =  splitToken(Token);
+    const token = splitToken(Token);
     console.log(token);
 
-    if(!token) {
-        response.status(401).json({msj: 'Token missing'});
+    if (!token) {
+        response.status(401).json({ msj: 'Token missing' });
         return;
     }
 
-    
+
     try { //revisar funcionamiento
-        
+
         let verifyToken = jwt.verify(token, signature);
 
-        
+
         // if(decodedToken){
-            request.userId = verifyToken.id;
-            request.admin = verifyToken.admin;
-            console.log(verifyToken);
-            console.log(request.userId);
-            console.log(request.admin); 
-            next();
-            // }else{
-                //     throw "No permmision"; //??
-                // }
+        request.userId = verifyToken.id;
+        request.admin = verifyToken.admin;
+        console.log(verifyToken);
+        console.log(request.userId);
+        console.log(request.admin);
+        next();
+        // }else{
+        //     throw "No permmision"; //??
+        // }
     } catch (error) {
-        response.status(401).json({msj: 'Invalid login'}); //cambiar mensaje
-    }                  
+        response.status(401).json({ msj: 'Invalid login' }); //cambiar mensaje
+    }
 }
 
 
 
 //validar admin
 const validateAdmin = (request, response, next) => {
-    if(request.admin == 'true') {
+    if (request.admin == 'true') {
         next();
     } else {
-        response.status(403).json({msj: 'forbidden'}); //cambiar mensaje
+        response.status(403).json({ msj: 'forbidden' }); //cambiar mensaje
     }
 }
 
 
-//--------------------------------------
+//-----------------fin middlewares---------------------
 
-//---------------productos
+//---------------PRODUCTOS-------------------------------------
+
+//---------------USER----------------------//
 
 server.get('/products', validateUser, (request, response) => {
 
-        sequelize.query("SELECT * FROM products",
-        {type: sequelize.QueryTypes.SELECT}
-        ).then(data => {
-            response.json({data: data});
-        });
+    sequelize.query("SELECT * FROM products",
+        { type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        response.json({ data: data });
+    });
 });
 
+server.get('/products/:id', validateUser, (request, response) => { //hace falta?
+    const id = request.params.id;
+
+    sequelize.query("SELECT * FROM products WHERE id = ?",
+        { replacements: [id], type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        response.json({ data: data[0] });
+    });
+
+});
+
+//---------------FIN USER----------------------//
+
+
+//---------------SOLO ADMIN----------------------//
+
 server.post('/products', validateUser, validateAdmin, (request, response) => {
-    let {name, keyword, price, photoUrl} = request.body;
-    
+    let { name, keyword, price, photoUrl } = request.body;
+
     let lastAssignedId = products[products.length - 1].id;
     let newID = lastAssignedId + 1;
 
@@ -194,62 +212,185 @@ server.post('/products', validateUser, validateAdmin, (request, response) => {
     response.json(newProduct);
 });
 
-server.get('/products/:id',validateUser, (request, response) => { //hace falta?
-    const id = request.params.id;
-    
-    sequelize.query("SELECT * FROM products WHERE id = ?",
-        {replacements: [id], type: sequelize.QueryTypes.SELECT}
-        ).then(data => {
-            response.json({data: data[0]});
-        });
-    
-});
+
 
 server.put('/products/:id', validateUser, validateAdmin, (request, response) => { //204 para put?
     const id = request.params.id;
-    let {name, keyword, price, photo_url} = request.body;
+    let { name, keyword, price, photo_url } = request.body;
 
     sequelize.query("UPDATE products SET name = ?, keyword = ?, price = ?, photo_url = ? WHERE id = ?",
-    {replacements: [name, keyword, price, photo_url, id]}
-    ).then(function(data) {
+        { replacements: [name, keyword, price, photo_url, id] }
+    ).then(function (data) {
 
         sequelize.query("SELECT * FROM products WHERE id = ?",
-        {replacements: [id], type: sequelize.QueryTypes.SELECT}
-        ).then(function(data) {
-            response.json({data: data[0]}); //cambiar status code
+            { replacements: [id], type: sequelize.QueryTypes.SELECT }
+        ).then(function (data) {
+            response.json({ data: data[0] }); //cambiar status code
         });
 
     });
-    
+
 });
 
 server.delete('/products/:id', validateUser, validateAdmin, (request, response) => {
     const id = request.params.id;
-    
+
     sequelize.query("DELETE FROM products WHERE id = ?",
-    {replacements: [id]}
-    ).then( data => {
+        { replacements: [id] }
+    ).then(data => {
         // console.log(data[0].affectedRows);
-        
+
         if (data[0].affectedRows == 0) {
-            response.status(404).json({msg: "Producto no encontrado"});
+            response.status(404).json({ msg: "Producto no encontrado" });
         } else {
             response.status(204).send();
         }
     });
-    
+
 });
 
 
-//-------------usuarios
+//---------------FIN SOLO ADMIN----------------------//
+
+//---------------FIN PRODUCTOS-------------------------------------------
+
+
+
+//-------------USUARIOS--------------------------------------------------
+
+
+//---------------USER----------------------//
+
+function updatedUser(id) {
+    const query = sequelize.query("SELECT id, name, username, email, address, phone_number, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
+        { replacements: [id], type: sequelize.QueryTypes.SELECT }
+    ).then(function (data) {
+        // response.json({ data: data[0] }); //cambiar status code
+        // console.log(data);
+        return data[0];
+    });
+    return query;
+}
+
+function encryptPass(pass) {
+
+    let encrypted = sequelize.query("SELECT md5(?)",
+        { replacements: [pass], type: sequelize.QueryTypes.SELECT }
+    ).then(function (data) {
+
+        let hash = Object.values(data[0])[0];
+        // console.log(hash);
+
+        return hash;
+    });
+    return encrypted;
+}
+
+server.get('/me', validateUser, (request, response) => {
+
+    // const newid = request.userId;
+    const id = request.userId;
+
+    sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
+        { replacements: [id], type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        response.json({ data: data[0] });
+    });
+});
+
+server.put('/me', validateUser, async (request, response) => { //204 para put? VALIDAR QUE NO SE REPITA USERNAME NI EMAIL y que no haya nulls
+    // const id = request.params.id;
+    const id = request.userId;
+    let { name, username, email, address, phone_number, password } = request.body;
+
+    let userNoPass = "UPDATE users SET name = ?, username = ?, email = ?, address = ?, phone_number = ? WHERE id = ?";
+    let userPass = "UPDATE users SET name = ?, username = ?, email = ?, address = ?, phone_number = ?, password = ? WHERE id = ?";
+    let adminNoPass = "UPDATE users SET name = ?, username = ?, email = ? WHERE id = ?";
+    let adminPass = "UPDATE users SET name = ?, username = ?, email = ?, password = ? WHERE id = ?";
+
+    let checkUser = await sequelize.query("SELECT username, email FROM users WHERE (username = ? OR email = ?) AND id != ?",
+        { replacements: [username, email, id], type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        if (data.length > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    });
+
+    if (checkUser) {
+        response.status(402).json({msg: "Usuario o correo ya registrado"}); //revisar codigo error
+        return;
+    }
+
+    if (password != undefined && request.admin == "false") {
+
+        password = await encryptPass(password);
+
+        sequelize.query(userPass,
+            { replacements: [name, username, email, address, phone_number, password, id] }
+        ).then(data => {
+            //hace falta el then?
+        });
+
+    }
+
+    if (password == undefined && request.admin == "false") {
+
+        sequelize.query(userNoPass,
+            { replacements: [name, username, email, address, phone_number, id] }
+        ).then(data => {
+            //hace falta el then?
+        });
+
+    }
+
+    if (password != undefined && request.admin == "true") {
+
+        password = await encryptPass(password);
+
+        sequelize.query(adminPass,
+            { replacements: [name, username, email, password, id] } //encriptar
+        ).then(data => {
+            //hace falta el then?
+        });
+
+    }
+
+    if (password == undefined && request.admin == "true") {
+
+        sequelize.query(adminNoPass,
+            { replacements: [name, username, email, id] }
+        ).then(data => {
+            //hace falta el then?
+        });
+
+    }
+
+
+    let updatedInfo = await updatedUser(id);
+    // console.log(updatedInfo);
+
+    response.json({ data: updatedInfo }); //cambiar status code
+
+
+    // //volver
+
+});
+
+//agregar post user y admin y delete me
+//---------------FIN USER----------------------//
+
+
+//---------------SOLO ADMIN----------------------//
 
 server.get('/users', validateUser, validateAdmin, (request, response) => {
-    
+
     sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users",
-        {type: sequelize.QueryTypes.SELECT}
-        ).then(data => {
-            response.json({data: data});
-        });
+        { type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        response.json({ data: data });
+    });
 });
 
 server.get('/users/:id', validateUser, validateAdmin, (request, response) => {
@@ -257,90 +398,30 @@ server.get('/users/:id', validateUser, validateAdmin, (request, response) => {
     const id = request.params.id;
 
     sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
-        {replacements: [id], type: sequelize.QueryTypes.SELECT}
-        ).then(data => {
-            response.json({data: data[0]});
-        });
+        { replacements: [id], type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        response.json({ data: data[0] });
+    });
 });
 
-server.get('/me', validateUser, (request, response) => {
 
-    // const newid = request.userId; //volver
-    const id = request.userId;
-
-    sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
-        {replacements: [id], type: sequelize.QueryTypes.SELECT}
-        ).then(data => {
-            response.json({data: data[0]});
-        });
-});
 
 // agregar data envelope y revisar que si devuelve un objeto no este en array
 //agregar validaciones de repeticion de usuario
 
 //sql NOW para hora y fecha sacar moment?
 
-server.put('/me', validateUser, (request, response) => { //204 para put? CAMBIAR POR ME
+
+server.delete('/users/:id', validateUser, validateAdmin, (request, response) => {
     // const id = request.params.id;
     const id = request.userId;
-    let {name, username, email, address, phone_number, password} = request.body;
 
-    let userNoPass = "UPDATE users SET name = ?, username = ?, email = ?, address = ?, phone_number = ? WHERE id = ?";
-    let userPass = "UPDATE users SET name = ?, username = ?, email = ?, address = ?, phone_number = ?, password = ? WHERE id = ?";
-    let adminNoPass = "UPDATE users SET name = ?, username = ?, email = ? WHERE id = ?";
-    let adminPass = "UPDATE users SET name = ?, username = ?, email = ?, password = ? WHERE id = ?";
-    
-    if (password != undefined){
-
-        sequelize.query( userPass,
-        {replacements: [name, username, email, address, phone_number, password, id]} //encriptar
-        ).then(function(data) {
-
-            sequelize.query("SELECT id, name, username, email, address, phone_number, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
-            {replacements: [id], type: sequelize.QueryTypes.SELECT} //agregar if admin 0 o 1
-            ).then(function(data) {
-                response.json({data: data[0]}); //cambiar status code
-            });
-
-        });
-
-
-    
-    } else {
-        
-    }
-//     if (request.admin == "false") {
-
-//         sequelize.query(,
-//         {replacements: [name, username, email, address, phone_number, password, id]}
-//         ).then(function(data) {
-
-//             sequelize.query("SELECT id, name, username, email, address, phone_number, admin FROM users WHERE id = ?",
-//             {replacements: [id], type: sequelize.QueryTypes.SELECT} //agregar if admin 0 o 1
-//             ).then(function(data) {
-//                 response.json({data: data[0]}); //cambiar status code
-//             });
-// //volver
-//         });
-
-//     }
-
-
-            // response.json(userData);
-            // console.log(users);
-    
-});
-
-server.delete('/users/:id', validateUser, (request, response) => { 
-    // const id = request.params.id;
-    const id = request.userId;
-    
     users.forEach(element => {
-        if(element.id == id) {
+        if (element.id == id) {
 
             let index = users.indexOf(element);
 
-            users.splice(index,1);
+            users.splice(index, 1);
 
             console.log(users);
 
@@ -348,104 +429,75 @@ server.delete('/users/:id', validateUser, (request, response) => {
             response.send();
         }
     });
-    
+
 });
 
 //post cliente y admin
 //agregar try catch a todos los endpoints
 
+//---------------FIN SOLO ADMIN----------------------//
+//---------------FIN USUARIOS----------------------------------------------
 
+//---------------LOGIN---------------------------------------------------
 
 //revisar
 server.post('/login', (request, response) => {
 
     console.log(request.body);
-    let {user, password} = request.body;
+    let { user, password } = request.body;
     // console.log(user);
 
     async function log_in() {
 
         let encrypt = await sequelize.query("SELECT md5(?)",
-            {replacements: [password], type: sequelize.QueryTypes.SELECT}
-        ).then(function(data) {
+            { replacements: [password], type: sequelize.QueryTypes.SELECT }
+        ).then(function (data) {
 
             let hash = Object.values(data[0])[0];
             console.log(hash);
-            
+
             return hash;
-        });
+        }); //modificar para ponerla afuera
 
         password = encrypt;
         console.log(password);
 
-    
+
         sequelize.query("SELECT id, username, email, admin, password, IF(admin, 'true', 'false') AS admin FROM users WHERE (username = ? AND password = ?) OR (email = ? AND password = ?)",
-            {replacements: [user, password, user, password], type: sequelize.QueryTypes.SELECT}
+            { replacements: [user, password, user, password], type: sequelize.QueryTypes.SELECT }
         ).then(data => {
             console.log(data);
             try {
 
-                let userInfo = {id: data[0].id, admin: data[0].admin};
+                let userInfo = { id: data[0].id, admin: data[0].admin };
                 console.log(userInfo);
                 let token = jwt.sign(userInfo, signature);
-            
-                response.status(200).json({token: token});
+
+                response.status(200).json({ token: token });
             } catch {
-                response.status(401).json({msj: 'Wrong user or password'}); //agregar validaciones de bad request cuando las keys faltan o estan mal escritas
-            }  
+                response.status(401).json({ msj: 'Wrong user or password' }); //agregar validaciones de bad request cuando las keys faltan o estan mal escritas
+            }
         });
-    
+
     }
 
     log_in();
-    
- });
-
-//revisar que los validate same user sean en endpoints donde el path tenga el id del usuario y no del pedido o ninguno
-
-//-----------------pedidos
-
-server.get('/orders', validateUser, validateAdmin, (request, response) => {
-    
-    let orders = [];
-
-    async function getOrders() {
-
-        await sequelize.query("SELECT * FROM orders ORDER BY id DESC",
-        {type: sequelize.QueryTypes.SELECT}
-        ).then(data => {
-            orders = data;
-            console.log(data);
-        });
-        
-           
-        for (i = 0; i < orders.length; i++) {
-
-            const order = orders[i];
-            const products = await sequelize.query("SELECT op.product_id, op.price, op.quantity FROM order_products op WHERE op.order_id = ?",
-            {replacements: [order.id], type: sequelize.QueryTypes.SELECT}
-            ).then(function(data) {
-
-                order.products = data;
-
-            });
-        }
-
-        
-        response.json({data: orders});
-    }
-
-    getOrders();
-
 
 });
 
+//---------------FIN LOGIN----------------------------------------------
+
+//revisar que los validate same user sean en endpoints donde el path tenga el id del usuario y no del pedido o ninguno
+
+//---------------PEDIDOS----------------------------------------------
+
+//---------------USUARIOS----------------------//
 
 server.post('/orders', validateUser, (request, response) => {
 
-    let {products, total, paymentMethod} = request.body;
+    let { products, total, paymentMethod } = request.body;
     let userId = request.userId;
-    
+
     let lastAssignedId = orders[orders.length - 1].orderId;
     let newID = lastAssignedId + 1;
 
@@ -467,129 +519,170 @@ server.post('/orders', validateUser, (request, response) => {
     response.json(newOrder);
 });
 
-
-
 server.get('/me/orders', validateUser, (request, response) => {
     // const id = request.params.id;
     const id = request.userId;
 
     let userOrders = [];
-    
+
     async function getUserOrders() {
 
         await sequelize.query("SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC",
-        {replacements: [id], type: sequelize.QueryTypes.SELECT}
+            { replacements: [id], type: sequelize.QueryTypes.SELECT }
         ).then(data => {
             userOrders = data;
             console.log(data);
         });
-        
-           
+
+
         for (i = 0; i < userOrders.length; i++) {
 
             const order = userOrders[i];
             const products = await sequelize.query("SELECT op.product_id, op.price, op.quantity FROM order_products op WHERE op.order_id = ?",
-            {replacements: [order.id], type: sequelize.QueryTypes.SELECT}
-            ).then(function(data) {
+                { replacements: [order.id], type: sequelize.QueryTypes.SELECT }
+            ).then(function (data) {
 
                 order.products = data;
 
             });
         }
 
-        
-        response.json({data: userOrders});
+
+        response.json({ data: userOrders });
     }
 
     getUserOrders();
 
-    
+
 });
-
-
 
 server.get('/me/orders/:id', validateUser, (request, response) => {
     const orderId = request.params.id;
     const userId = request.userId;
 
     let userOrder = {};
-    
+
     async function getUserOrder() {
 
         await sequelize.query("SELECT * FROM orders WHERE user_id = ? AND id = ?",
-        {replacements: [userId, orderId], type: sequelize.QueryTypes.SELECT}
+            { replacements: [userId, orderId], type: sequelize.QueryTypes.SELECT }
         ).then(data => {
             userOrder = data[0];
             console.log(data);
         });
-    
+
         const products = await sequelize.query("SELECT op.product_id, op.price, op.quantity FROM order_products op WHERE op.order_id = ?",
-        {replacements: [orderId], type: sequelize.QueryTypes.SELECT}
-        ).then(function(data) {
+            { replacements: [orderId], type: sequelize.QueryTypes.SELECT }
+        ).then(function (data) {
 
             userOrder.products = data;
 
         });
 
-        
-        response.json({data: userOrder});
+
+        response.json({ data: userOrder });
     }
 
     getUserOrder();
 
-    
+
 });
+
+
+
+
+
+//---------------FIN USUARIOS----------------------//
+
+
+//---------------SOLO ADMIN----------------------//
+
+server.get('/orders', validateUser, validateAdmin, (request, response) => {
+
+    let orders = [];
+
+    async function getOrders() {
+
+        await sequelize.query("SELECT * FROM orders ORDER BY id DESC",
+            { type: sequelize.QueryTypes.SELECT }
+        ).then(data => {
+            orders = data;
+            console.log(data);
+        });
+
+
+        for (i = 0; i < orders.length; i++) {
+
+            const order = orders[i];
+            const products = await sequelize.query("SELECT op.product_id, op.price, op.quantity FROM order_products op WHERE op.order_id = ?",
+                { replacements: [order.id], type: sequelize.QueryTypes.SELECT }
+            ).then(function (data) {
+
+                order.products = data;
+
+            });
+        }
+
+
+        response.json({ data: orders });
+    }
+
+    getOrders();
+
+
+});
+
 
 server.get('/orders/:id', validateUser, validateAdmin, (request, response) => {
     const id = request.params.id;
     // const reqUserId = request.userId;
-    
+
     async function getOrder() {
 
         let order = {};
 
         await sequelize.query("SELECT * FROM orders WHERE id =?",
-        {replacements: [id], type: sequelize.QueryTypes.SELECT}
+            { replacements: [id], type: sequelize.QueryTypes.SELECT }
         ).then(data => {
             order = data[0];
             console.log(data);
         });
-        
+
 
         const products = await sequelize.query("SELECT op.product_id, op.price, op.quantity FROM order_products op WHERE op.order_id = ?",
-        {replacements: [id], type: sequelize.QueryTypes.SELECT}
-        ).then(function(data) {
+            { replacements: [id], type: sequelize.QueryTypes.SELECT }
+        ).then(function (data) {
 
             order.products = data;
 
         });
-        
-        
-        response.json({data: order});
+
+
+        response.json({ data: order });
     }
 
     getOrder();
-    
+
 });
 
 server.put('/orders/:id', validateUser, validateAdmin, (request, response) => {
     const id = request.params.id;
     const status = request.query;
-    
+
     orders.forEach(element => {
-        if(element.orderId == id) {
+        if (element.orderId == id) {
             element.status = status.status;
             console.log(orders);
             response.json(element);
         }
     });
-    
+
 });
 
 // agregar delete orders
 
-
-
+//---------------FIN SOLO ADMIN----------------------//
+//---------------FIN PEDIDOS----------------------------------------------
 
 //------------base de datos provisoria
 
@@ -628,14 +721,14 @@ let users = [
 ];
 
 let products = [
-    {  
+    {
         id: 1,
         name: "Focaccia",
         keyword: "focacc",
         price: 200,
         photoUrl: "https://www.gimmesomeoven.com/wp-content/uploads/2017/03/Rosemary-Focaccia-Recipe-1.jpg"
     },
-    {  
+    {
         id: 2,
         name: "Veggie Burger",
         keyword: "veggBur",
@@ -649,14 +742,14 @@ let orders = [
     {
         orderId: 1, //cambiar por id y productId
         products: [
-          {
-            id: 2,
-            quantity: 1
-          },
-          {
-            id: 1,
-            quantity: 2
-          },
+            {
+                id: 2,
+                quantity: 1
+            },
+            {
+                id: 1,
+                quantity: 2
+            },
         ],
         total: 550,
         userId: 2,
@@ -664,18 +757,18 @@ let orders = [
         timeStamp: "18:29",
         date: "10-02-2020",
         status: "confirmado"
-      },
-      {
+    },
+    {
         orderId: 2,
         products: [
-          {
-            id: 1,
-            quantity: 1
-          },
-          {
-            id: 2,
-            quantity: 1
-          },
+            {
+                id: 1,
+                quantity: 1
+            },
+            {
+                id: 2,
+                quantity: 1
+            },
         ],
         total: 350,
         userId: 3,
@@ -683,7 +776,7 @@ let orders = [
         timeStamp: "17:50",
         date: "10-02-2020",
         status: "nuevo"
-      }
+    }
 ];
 
 
