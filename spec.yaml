@@ -21,6 +21,7 @@ paths:
               #agrear users me orders id
               #ambiar users me por solo me
               #arreglar nombres keys compuesdtas por guion bajjo
+              #revisar correcciones de endpoints parametros
   /products:
   
     get:
