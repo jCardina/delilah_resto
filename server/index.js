@@ -226,17 +226,15 @@ server.put('/products/:id', validateUser, validateAdmin, (request, response) => 
 server.delete('/products/:id', validateUser, validateAdmin, (request, response) => {
     const id = request.params.id;
     
-    products.forEach(element => {
-        if(element.id == id) {
-
-            let index = products.indexOf(element);
-
-            products.splice(index,1);
-
-            console.log(products);
-
-            response.statusCode = 204;
-            response.send();
+    sequelize.query("DELETE FROM products WHERE id = ?",
+    {replacements: [id]}
+    ).then( data => {
+        // console.log(data[0].affectedRows);
+        
+        if (data[0].affectedRows == 0) {
+            response.status(404).json({msg: "Producto no encontrado"});
+        } else {
+            response.status(204).send();
         }
     });
     
@@ -278,48 +276,58 @@ server.get('/me', validateUser, (request, response) => {
 });
 
 // agregar data envelope y revisar que si devuelve un objeto no este en array
+//agregar validaciones de repeticion de usuario
 
-server.put('/users/:id', validateUser, (request, response) => { //204 para put? CAMBIAR POR ME
+//sql NOW para hora y fecha sacar moment?
+
+server.put('/me', validateUser, (request, response) => { //204 para put? CAMBIAR POR ME
     // const id = request.params.id;
     const id = request.userId;
-    let data = request.body;
+    let {name, username, email, address, phone_number, password} = request.body;
 
-    users.forEach(element => {
-        if(element.id == id) { //modificar para que sean todos obligatorios salvo password
+    let userNoPass = "UPDATE users SET name = ?, username = ?, email = ?, address = ?, phone_number = ? WHERE id = ?";
+    let userPass = "UPDATE users SET name = ?, username = ?, email = ?, address = ?, phone_number = ?, password = ? WHERE id = ?";
+    let adminNoPass = "UPDATE users SET name = ?, username = ?, email = ? WHERE id = ?";
+    let adminPass = "UPDATE users SET name = ?, username = ?, email = ?, password = ? WHERE id = ?";
+    
+    if (password != undefined){
 
-            if(data.name) {
-                element.name = data.name;
-            }
-            if(data.userName) {
-            element.userName = data.userName;
-            }
-            if(data.email) {
-            element.email = data.email;
-            }
-            if(data.address) {
-            element.address = data.address;
-            }
-            if(data.phoneNumber) {
-            element.phoneNumber = data.phoneNumber;
-            }
-            if(data.password) {
-            element.password = data.password;
-            }
+        sequelize.query( userPass,
+        {replacements: [name, username, email, address, phone_number, password, id]} //encriptar
+        ).then(function(data) {
 
-            let userData = {
-                id: element.id,
-                name: element.name,
-                userName: element.userName,
-                email: element.email,
-                address: element.address,
-                phoneNumber: element.phoneNumber,
-            }
+            sequelize.query("SELECT id, name, username, email, address, phone_number, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
+            {replacements: [id], type: sequelize.QueryTypes.SELECT} //agregar if admin 0 o 1
+            ).then(function(data) {
+                response.json({data: data[0]}); //cambiar status code
+            });
 
-            response.json(userData);
-            console.log(users);
-           
-        }
-    });
+        });
+
+
+    
+    } else {
+        
+    }
+//     if (request.admin == "false") {
+
+//         sequelize.query(,
+//         {replacements: [name, username, email, address, phone_number, password, id]}
+//         ).then(function(data) {
+
+//             sequelize.query("SELECT id, name, username, email, address, phone_number, admin FROM users WHERE id = ?",
+//             {replacements: [id], type: sequelize.QueryTypes.SELECT} //agregar if admin 0 o 1
+//             ).then(function(data) {
+//                 response.json({data: data[0]}); //cambiar status code
+//             });
+// //volver
+//         });
+
+//     }
+
+
+            // response.json(userData);
+            // console.log(users);
     
 });
 
