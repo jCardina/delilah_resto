@@ -186,6 +186,12 @@ server.get('/products/:id', validateUser, (request, response) => { //hace falta?
 
 });
 
+let prueba = require('./queries.js');
+let prueba2 = prueba.hola;
+
+let ll = prueba2();
+console.log(ll);
+
 //---------------FIN USER----------------------//
 
 
@@ -286,6 +292,86 @@ function encryptPass(pass) {
     return encrypted;
 }
 
+function checkUser(user, email, id) {
+
+    let userMatch = sequelize.query("SELECT username, email FROM users WHERE (username = ? OR email = ?) AND id != ?",
+        { replacements: [user, email, id], type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        if (data.length > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    });
+    return userMatch;
+}
+//PRUEEEEEE BAAAA
+function updateUser(request, id, name, username, email, address, phone, password) {
+
+    let userNoPass = "UPDATE users SET name = ?, username = ?, email = ?, address = ?, phone_number = ? WHERE id = ?";
+    let userPass = "UPDATE users SET name = ?, username = ?, email = ?, address = ?, phone_number = ?, password = ? WHERE id = ?";
+    let adminNoPass = "UPDATE users SET name = ?, username = ?, email = ? WHERE id = ?";
+    let adminPass = "UPDATE users SET name = ?, username = ?, email = ?, password = ? WHERE id = ?";
+    let query;
+
+    if (password != undefined && request.admin == "false") {
+
+        // password = await encryptPass(password);
+
+        query = sequelize.query(userPass,
+            { replacements: [name, username, email, address, phone, password, id] }
+        ).then(data => {
+            //hace falta el then? agregar return a todos los if
+            console.log("then");
+            return data;
+        });
+        console.log("return");
+        return query;
+    }
+
+    if (password == undefined && request.admin == "false") {
+
+        query = sequelize.query(userNoPass,
+            { replacements: [name, username, email, address, phone, id] }
+        ).then(data => {
+            //hace falta el then?
+            return data;
+        });
+        return query;
+
+    }
+
+    if (password != undefined && request.admin == "true") {
+
+        // password = await encryptPass(password);
+
+        query = sequelize.query(adminPass,
+            { replacements: [name, username, email, password, id] } //encriptar
+        ).then(data => {
+            //hace falta el then?
+            return data;
+        });
+        return query;
+
+    }
+
+    if (password == undefined && request.admin == "true") {
+
+        query = sequelize.query(adminNoPass,
+            { replacements: [name, username, email, id] }
+        ).then(data => {
+            //hace falta el then?
+            return data;
+        });
+
+        return query;
+    }
+}
+
+
+//agregar error para cuando las keys no estan bien escritas o faltan o no tienen contenido y que los numeros sean numeros
+
+//revisar que la respuesta de update este actualizada
 server.get('/me', validateUser, (request, response) => {
 
     // const newid = request.userId;
@@ -303,70 +389,20 @@ server.put('/me', validateUser, async (request, response) => { //204 para put? V
     const id = request.userId;
     let { name, username, email, address, phone_number, password } = request.body;
 
-    let userNoPass = "UPDATE users SET name = ?, username = ?, email = ?, address = ?, phone_number = ? WHERE id = ?";
-    let userPass = "UPDATE users SET name = ?, username = ?, email = ?, address = ?, phone_number = ?, password = ? WHERE id = ?";
-    let adminNoPass = "UPDATE users SET name = ?, username = ?, email = ? WHERE id = ?";
-    let adminPass = "UPDATE users SET name = ?, username = ?, email = ?, password = ? WHERE id = ?";
 
-    let checkUser = await sequelize.query("SELECT username, email FROM users WHERE (username = ? OR email = ?) AND id != ?",
-        { replacements: [username, email, id], type: sequelize.QueryTypes.SELECT }
-    ).then(data => {
-        if (data.length > 0) {
-            return true;
-        } else {
-            return false;
-        }
-    });
+    let checkUpUser = await checkUser(username, email, id);
 
-    if (checkUser) {
-        response.status(402).json({msg: "Usuario o correo ya registrado"}); //revisar codigo error
+    if (checkUpUser) {
+        response.status(402).json({ msg: "Usuario o correo ya registrado" }); //revisar codigo error
         return;
     }
 
-    if (password != undefined && request.admin == "false") {
-
+    if (password != undefined) {
         password = await encryptPass(password);
-
-        sequelize.query(userPass,
-            { replacements: [name, username, email, address, phone_number, password, id] }
-        ).then(data => {
-            //hace falta el then?
-        });
-
     }
 
-    if (password == undefined && request.admin == "false") {
 
-        sequelize.query(userNoPass,
-            { replacements: [name, username, email, address, phone_number, id] }
-        ).then(data => {
-            //hace falta el then?
-        });
-
-    }
-
-    if (password != undefined && request.admin == "true") {
-
-        password = await encryptPass(password);
-
-        sequelize.query(adminPass,
-            { replacements: [name, username, email, password, id] } //encriptar
-        ).then(data => {
-            //hace falta el then?
-        });
-
-    }
-
-    if (password == undefined && request.admin == "true") {
-
-        sequelize.query(adminNoPass,
-            { replacements: [name, username, email, id] }
-        ).then(data => {
-            //hace falta el then?
-        });
-
-    }
-
+    let update = await updateUser(request, id, name, username, email, address, phone_number, password);
 
     let updatedInfo = await updatedUser(id);
     // console.log(updatedInfo);
@@ -440,48 +476,44 @@ server.delete('/users/:id', validateUser, validateAdmin, (request, response) => 
 
 //---------------LOGIN---------------------------------------------------
 
+function logIn(user, password) {
+
+    let query = sequelize.query("SELECT id, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE (username = ? AND password = ?) OR (email = ? AND password = ?)",
+        { replacements: [user, password, user, password], type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        console.log(data);
+        return data;
+    });
+
+    return query;
+
+}
+
+
+
 //revisar
-server.post('/login', (request, response) => {
+server.post('/login', async (request, response) => {
 
     console.log(request.body);
     let { user, password } = request.body;
     // console.log(user);
 
-    async function log_in() {
+    let encrypt = await encryptPass(password);
+    password = encrypt;
+    console.log(password);
 
-        let encrypt = await sequelize.query("SELECT md5(?)",
-            { replacements: [password], type: sequelize.QueryTypes.SELECT }
-        ).then(function (data) {
+    let logData = await logIn(user, password);
 
-            let hash = Object.values(data[0])[0];
-            console.log(hash);
+    try {
 
-            return hash;
-        }); //modificar para ponerla afuera
+        let userInfo = { id: logData[0].id, admin: logData[0].admin };
+        console.log(userInfo);
+        let token = jwt.sign(userInfo, signature);
 
-        password = encrypt;
-        console.log(password);
-
-
-        sequelize.query("SELECT id, username, email, admin, password, IF(admin, 'true', 'false') AS admin FROM users WHERE (username = ? AND password = ?) OR (email = ? AND password = ?)",
-            { replacements: [user, password, user, password], type: sequelize.QueryTypes.SELECT }
-        ).then(data => {
-            console.log(data);
-            try {
-
-                let userInfo = { id: data[0].id, admin: data[0].admin };
-                console.log(userInfo);
-                let token = jwt.sign(userInfo, signature);
-
-                response.status(200).json({ token: token });
-            } catch {
-                response.status(401).json({ msj: 'Wrong user or password' }); //agregar validaciones de bad request cuando las keys faltan o estan mal escritas
-            }
-        });
-
+        response.status(200).json({ token: token });
+    } catch {
+        response.status(401).json({ msj: 'Wrong user or password' }); //agregar validaciones de bad request cuando las keys faltan o estan mal escritas
     }
-
-    log_in();
 
 });
 
