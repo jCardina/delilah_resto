@@ -7,54 +7,26 @@ const cors = require('cors');
 
 const signature = "token_Generator_3402921GtFDnL";
 
+const queries = require('./queries.js');
+
+const updatedUser = queries.updatedUser;
+const encryptPass = queries.encryptPass;
+const updateUser = queries.updateUser;
+const checkUser = queries.checkUser;
+
 
 //libreria routes para no tener toda la estructura en el mismo archivo
 
 
 //---------------------
 
-const Sequelize = require('sequelize');
+const Sequelize = require('sequelize'); //sacar de este archivo?
 
 const sequelize = new Sequelize("delilah_db", "root", "", {
     host: "localhost",
     dialect: "mysql",
 });
 
-//--------------------modelos queries
-// sequelize.query("SELECT name, user_name, admin FROM users WHERE id < ?",
-//     {replacements: [3], type: sequelize.QueryTypes.SELECT}
-// ).then(function(data) {
-//     let userList = {data: data};
-//     // console.log(userList);
-// });
-
-// sequelize.query("SELECT name, user_name, admin FROM users",
-//     {type: sequelize.QueryTypes.SELECT}
-// ).then(function(data) {
-//     data.forEach(element => {
-//         if (element.admin == 0) {
-//             element.admin = false;
-//         } else {
-//             element.admin = true;
-//         }
-//     });
-//     console.log(data);
-// });
-
-// let newOrder = {};
-
-//   sequelize.query("SELECT * FROM orders WHERE id = ?",
-//       {replacements: [1], type: sequelize.QueryTypes.SELECT}
-//   ).then(function(data) {
-//     newOrder.id = data[0].id;
-//     newOrder.total = data[0].total;
-//     newOrder.user_id = data[0].user_id;
-//     newOrder.payment_method = data[0].payment_method;
-//     newOrder.time = data[0].time;
-//     newOrder.date = data[0].date;
-//     newOrder.status = data[0].status;
-//     // console.log(data);
-//   });
 
 
 //order by para pedidos y limit y paginacion
@@ -70,11 +42,6 @@ const sequelize = new Sequelize("delilah_db", "root", "", {
 
 // });
 
-// sequelize.query("SELECT md5(?)",
-//     {replacements: ["123"], type: sequelize.QueryTypes.SELECT}
-// ).then(function(data) {
-//     // console.log(data);    
-// });
 
 // sequelize.query("INSERT INTO users (name, user_name, email, address, phone_number, password, admin) VALUES(?, ?, ?, ?, ?, ?, ?)",
 // {replacements: ["Carla Gomez", "car_goo", "carlagomez@gmal.com", "Peru 333", 23495955, "passs", 1]}
@@ -186,11 +153,8 @@ server.get('/products/:id', validateUser, (request, response) => { //hace falta?
 
 });
 
-let prueba = require('./queries.js');
-let prueba2 = prueba.hola;
 
-let ll = prueba2();
-console.log(ll);
+//PRUEBA 12-3
 
 //---------------FIN USER----------------------//
 
@@ -267,106 +231,7 @@ server.delete('/products/:id', validateUser, validateAdmin, (request, response) 
 
 //---------------USER----------------------//
 
-function updatedUser(id) {
-    const query = sequelize.query("SELECT id, name, username, email, address, phone_number, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
-        { replacements: [id], type: sequelize.QueryTypes.SELECT }
-    ).then(function (data) {
-        // response.json({ data: data[0] }); //cambiar status code
-        // console.log(data);
-        return data[0];
-    });
-    return query;
-}
 
-function encryptPass(pass) {
-
-    let encrypted = sequelize.query("SELECT md5(?)",
-        { replacements: [pass], type: sequelize.QueryTypes.SELECT }
-    ).then(function (data) {
-
-        let hash = Object.values(data[0])[0];
-        // console.log(hash);
-
-        return hash;
-    });
-    return encrypted;
-}
-
-function checkUser(user, email, id) {
-
-    let userMatch = sequelize.query("SELECT username, email FROM users WHERE (username = ? OR email = ?) AND id != ?",
-        { replacements: [user, email, id], type: sequelize.QueryTypes.SELECT }
-    ).then(data => {
-        if (data.length > 0) {
-            return true;
-        } else {
-            return false;
-        }
-    });
-    return userMatch;
-}
-//PRUEEEEEE BAAAA
-function updateUser(request, id, name, username, email, address, phone, password) {
-
-    let userNoPass = "UPDATE users SET name = ?, username = ?, email = ?, address = ?, phone_number = ? WHERE id = ?";
-    let userPass = "UPDATE users SET name = ?, username = ?, email = ?, address = ?, phone_number = ?, password = ? WHERE id = ?";
-    let adminNoPass = "UPDATE users SET name = ?, username = ?, email = ? WHERE id = ?";
-    let adminPass = "UPDATE users SET name = ?, username = ?, email = ?, password = ? WHERE id = ?";
-    let query;
-
-    if (password != undefined && request.admin == "false") {
-
-        // password = await encryptPass(password);
-
-        query = sequelize.query(userPass,
-            { replacements: [name, username, email, address, phone, password, id] }
-        ).then(data => {
-            //hace falta el then? agregar return a todos los if
-            console.log("then");
-            return data;
-        });
-        console.log("return");
-        return query;
-    }
-
-    if (password == undefined && request.admin == "false") {
-
-        query = sequelize.query(userNoPass,
-            { replacements: [name, username, email, address, phone, id] }
-        ).then(data => {
-            //hace falta el then?
-            return data;
-        });
-        return query;
-
-    }
-
-    if (password != undefined && request.admin == "true") {
-
-        // password = await encryptPass(password);
-
-        query = sequelize.query(adminPass,
-            { replacements: [name, username, email, password, id] } //encriptar
-        ).then(data => {
-            //hace falta el then?
-            return data;
-        });
-        return query;
-
-    }
-
-    if (password == undefined && request.admin == "true") {
-
-        query = sequelize.query(adminNoPass,
-            { replacements: [name, username, email, id] }
-        ).then(data => {
-            //hace falta el then?
-            return data;
-        });
-
-        return query;
-    }
-}
 
 
 //agregar error para cuando las keys no estan bien escritas o faltan o no tienen contenido y que los numeros sean numeros
