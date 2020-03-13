@@ -9,14 +9,18 @@ const signature = "token_Generator_3402921GtFDnL";
 
 const queries = require('./queries.js');
 
-const updatedUser = queries.updatedUser;
+const getUpdatedUser = queries.getUpdatedUser;
 const encryptPass = queries.encryptPass;
 const updateUser = queries.updateUser;
 const checkUser = queries.checkUser;
 
 
-//libreria routes para no tener toda la estructura en el mismo archivo
+const routes = require('./routes.js');
 
+
+server.get('/test', routes.validateTest, routes.getProducts);
+
+// serequire("./routes.js"));
 
 //---------------------
 
@@ -133,14 +137,14 @@ const validateAdmin = (request, response, next) => {
 
 //---------------USER----------------------//
 
-server.get('/products', validateUser, (request, response) => {
+// server.get('/products', validateUser, (request, response) => {
 
-    sequelize.query("SELECT * FROM products",
-        { type: sequelize.QueryTypes.SELECT }
-    ).then(data => {
-        response.json({ data: data });
-    });
-});
+//     sequelize.query("SELECT * FROM products",
+//         { type: sequelize.QueryTypes.SELECT }
+//     ).then(data => {
+//         response.json({ data: data });
+//     });
+// });
 
 server.get('/products/:id', validateUser, (request, response) => { //hace falta?
     const id = request.params.id;
@@ -267,9 +271,9 @@ server.put('/me', validateUser, async (request, response) => { //204 para put? V
     }
 
 
-    let update = await updateUser(request, id, name, username, email, address, phone_number, password);
+    let update = await updateUser(request.admin, id, name, username, email, address, phone_number, password);
 
-    let updatedInfo = await updatedUser(id);
+    let updatedInfo = await getUpdatedUser(id);
     // console.log(updatedInfo);
 
     response.json({ data: updatedInfo }); //cambiar status code
