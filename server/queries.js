@@ -7,7 +7,7 @@ const sequelize = new Sequelize("delilah_db", "root", "", {
 });
 
 
-function updatedUser(id) {
+function getUpdatedUser(id) {
     const query = sequelize.query("SELECT id, name, username, email, address, phone_number, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
     ).then(function (data) {
@@ -46,7 +46,7 @@ function checkUser(user, email, id) {
     return userMatch;
 }
 
-function updateUser(request, id, name, username, email, address, phone, password) {
+function updateUser(admin, id, name, username, email, address, phone, password) {
 
     let userNoPass = "UPDATE users SET name = ?, username = ?, email = ?, address = ?, phone_number = ? WHERE id = ?";
     let userPass = "UPDATE users SET name = ?, username = ?, email = ?, address = ?, phone_number = ?, password = ? WHERE id = ?";
@@ -54,7 +54,7 @@ function updateUser(request, id, name, username, email, address, phone, password
     let adminPass = "UPDATE users SET name = ?, username = ?, email = ?, password = ? WHERE id = ?";
     let query;
 
-    if (password != undefined && request.admin == "false") {
+    if (password != undefined && admin == "false") {
 
         // password = await encryptPass(password);
 
@@ -69,7 +69,7 @@ function updateUser(request, id, name, username, email, address, phone, password
         return query;
     }
 
-    if (password == undefined && request.admin == "false") {
+    if (password == undefined && admin == "false") {
 
         query = sequelize.query(userNoPass,
             { replacements: [name, username, email, address, phone, id] }
@@ -81,7 +81,7 @@ function updateUser(request, id, name, username, email, address, phone, password
 
     }
 
-    if (password != undefined && request.admin == "true") {
+    if (password != undefined && admin == "true") {
 
         // password = await encryptPass(password);
 
@@ -95,7 +95,7 @@ function updateUser(request, id, name, username, email, address, phone, password
 
     }
 
-    if (password == undefined && request.admin == "true") {
+    if (password == undefined && admin == "true") {
 
         query = sequelize.query(adminNoPass,
             { replacements: [name, username, email, id] }
@@ -111,7 +111,7 @@ function updateUser(request, id, name, username, email, address, phone, password
 
 
 module.exports = {
-    updatedUser: updatedUser,
+    getUpdatedUser: getUpdatedUser,
     encryptPass: encryptPass,
     checkUser: checkUser,
     updateUser: updateUser
