@@ -7,6 +7,28 @@ const sequelize = new Sequelize("delilah_db", "root", "", {
 });
 
 
+//pasar functions a const
+
+const getAllProducts = () => {
+    const query = sequelize.query("SELECT * FROM products",
+        { type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        return data;
+    });
+    // console.log(query);
+    return query;
+}
+
+const getOneProduct = (id) => {
+
+    const query = sequelize.query("SELECT * FROM products WHERE id = ?",
+        { replacements: [id], type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        return data[0];
+    });
+    return query;
+}
+
 function getUpdatedUser(id) {
     const query = sequelize.query("SELECT id, name, username, email, address, phone_number, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
@@ -111,6 +133,8 @@ function updateUser(admin, id, name, username, email, address, phone, password) 
 
 
 module.exports = {
+    getAllProducts: getAllProducts,
+    getOneProduct: getOneProduct,
     getUpdatedUser: getUpdatedUser,
     encryptPass: encryptPass,
     checkUser: checkUser,

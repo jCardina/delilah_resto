@@ -2,10 +2,10 @@ const express = require('express');
 const server = express();
 const bodyParser = require('body-parser');
 const moment = require('moment'); //sacar?
-const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken'); //sacar?
 const cors = require('cors');
 
-const signature = "token_Generator_3402921GtFDnL";
+const signature = "token_Generator_3402921GtFDnL"; //sacar?
 
 const queries = require('./queries.js');
 
@@ -18,7 +18,7 @@ const checkUser = queries.checkUser;
 const routes = require('./routes.js');
 
 
-server.get('/test', routes.validateTest, routes.getProducts);
+
 
 // serequire("./routes.js"));
 
@@ -73,65 +73,65 @@ server.listen(3000, () => {
 //sacar request params de usuarios que no hagan falta en este archivo porque estan en los middlewares
 
 
-//----------------------------middlewares
+// //----------------------------middlewares
 
-function splitToken(token) {
-    try {
-        let getToken = token.split(' ')[1];
-        return getToken;
-    } catch (error) {
-        return false;
-    }
-}
+// function splitToken(token) {
+//     try {
+//         let getToken = token.split(' ')[1];
+//         return getToken;
+//     } catch (error) {
+//         return false;
+//     }
+// }
 
-const validateUser = (request, response, next) => { //revisar
+// const validateUser = (request, response, next) => { //revisar
 
-    let Token = request.headers.authorization;
+//     let Token = request.headers.authorization;
 
-    console.log(request.path);
+//     console.log(request.path);
 
-    const token = splitToken(Token);
-    console.log(token);
+//     const token = splitToken(Token);
+//     console.log(token);
 
-    if (!token) {
-        response.status(401).json({ msj: 'Token missing' });
-        return;
-    }
-
-
-    try { //revisar funcionamiento
-
-        let verifyToken = jwt.verify(token, signature);
+//     if (!token) {
+//         response.status(401).json({ msj: 'Token missing' });
+//         return;
+//     }
 
 
-        // if(decodedToken){
-        request.userId = verifyToken.id;
-        request.admin = verifyToken.admin;
-        console.log(verifyToken);
-        console.log(request.userId);
-        console.log(request.admin);
-        next();
-        // }else{
-        //     throw "No permmision"; //??
-        // }
-    } catch (error) {
-        response.status(401).json({ msj: 'Invalid login' }); //cambiar mensaje
-    }
-}
+//     try { //revisar funcionamiento
+
+//         let verifyToken = jwt.verify(token, signature);
+
+
+//         // if(decodedToken){
+//         request.userId = verifyToken.id;
+//         request.admin = verifyToken.admin;
+//         console.log(verifyToken);
+//         console.log(request.userId);
+//         console.log(request.admin);
+//         next();
+//         // }else{
+//         //     throw "No permmision"; //??
+//         // }
+//     } catch (error) {
+//         response.status(401).json({ msj: 'Invalid login' }); //cambiar mensaje
+//     }
+// }
 
 
 
-//validar admin
-const validateAdmin = (request, response, next) => {
-    if (request.admin == 'true') {
-        next();
-    } else {
-        response.status(403).json({ msj: 'forbidden' }); //cambiar mensaje
-    }
-}
+// //validar admin
+// const validateAdmin = (request, response, next) => {
+//     if (request.admin == 'true') {
+//         next();
+//     } else {
+//         response.status(403).json({ msj: 'forbidden' }); //cambiar mensaje
+//     }
+// }
 
 
-//-----------------fin middlewares---------------------
+// //-----------------fin middlewares---------------------
 
 //---------------PRODUCTOS-------------------------------------
 
@@ -146,16 +146,19 @@ const validateAdmin = (request, response, next) => {
 //     });
 // });
 
-server.get('/products/:id', validateUser, (request, response) => { //hace falta?
-    const id = request.params.id;
+server.get('/products', routes.validateUser, routes.getProducts);
 
-    sequelize.query("SELECT * FROM products WHERE id = ?",
-        { replacements: [id], type: sequelize.QueryTypes.SELECT }
-    ).then(data => {
-        response.json({ data: data[0] });
-    });
+server.get('/products/:id', routes.validateUser, routes.getProductById);
+// server.get('/products/:id', routes.validateUser, (request, response) => { //hace falta?
+//     const id = request.params.id;
 
-});
+//     sequelize.query("SELECT * FROM products WHERE id = ?",
+//         { replacements: [id], type: sequelize.QueryTypes.SELECT }
+//     ).then(data => {
+//         response.json({ data: data[0] });
+//     });
+
+// });
 
 
 //PRUEBA 12-3
@@ -165,7 +168,7 @@ server.get('/products/:id', validateUser, (request, response) => { //hace falta?
 
 //---------------SOLO ADMIN----------------------//
 
-server.post('/products', validateUser, validateAdmin, (request, response) => {
+server.post('/products', routes.validateUser, routes.validateAdmin, (request, response) => {
     let { name, keyword, price, photoUrl } = request.body;
 
     let lastAssignedId = products[products.length - 1].id;
@@ -188,7 +191,7 @@ server.post('/products', validateUser, validateAdmin, (request, response) => {
 
 
 
-server.put('/products/:id', validateUser, validateAdmin, (request, response) => { //204 para put?
+server.put('/products/:id', routes.validateUser, routes.validateAdmin, (request, response) => { //204 para put?
     const id = request.params.id;
     let { name, keyword, price, photo_url } = request.body;
 
@@ -206,7 +209,7 @@ server.put('/products/:id', validateUser, validateAdmin, (request, response) => 
 
 });
 
-server.delete('/products/:id', validateUser, validateAdmin, (request, response) => {
+server.delete('/products/:id', routes.validateUser, routes.validateAdmin, (request, response) => {
     const id = request.params.id;
 
     sequelize.query("DELETE FROM products WHERE id = ?",
@@ -241,7 +244,7 @@ server.delete('/products/:id', validateUser, validateAdmin, (request, response) 
 //agregar error para cuando las keys no estan bien escritas o faltan o no tienen contenido y que los numeros sean numeros
 
 //revisar que la respuesta de update este actualizada
-server.get('/me', validateUser, (request, response) => {
+server.get('/me', routes.validateUser, (request, response) => {
 
     // const newid = request.userId;
     const id = request.userId;
@@ -253,7 +256,7 @@ server.get('/me', validateUser, (request, response) => {
     });
 });
 
-server.put('/me', validateUser, async (request, response) => { //204 para put? VALIDAR QUE NO SE REPITA USERNAME NI EMAIL y que no haya nulls
+server.put('/me', routes.validateUser, async (request, response) => { //204 para put? VALIDAR QUE NO SE REPITA USERNAME NI EMAIL y que no haya nulls
     // const id = request.params.id;
     const id = request.userId;
     let { name, username, email, address, phone_number, password } = request.body;
@@ -289,7 +292,7 @@ server.put('/me', validateUser, async (request, response) => { //204 para put? V
 
 //---------------SOLO ADMIN----------------------//
 
-server.get('/users', validateUser, validateAdmin, (request, response) => {
+server.get('/users', routes.validateUser, routes.validateAdmin, (request, response) => {
 
     sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users",
         { type: sequelize.QueryTypes.SELECT }
@@ -298,7 +301,7 @@ server.get('/users', validateUser, validateAdmin, (request, response) => {
     });
 });
 
-server.get('/users/:id', validateUser, validateAdmin, (request, response) => {
+server.get('/users/:id', routes.validateUser, routes.validateAdmin, (request, response) => {
 
     const id = request.params.id;
 
@@ -317,7 +320,7 @@ server.get('/users/:id', validateUser, validateAdmin, (request, response) => {
 //sql NOW para hora y fecha sacar moment?
 
 
-server.delete('/users/:id', validateUser, validateAdmin, (request, response) => {
+server.delete('/users/:id', routes.validateUser, routes.validateAdmin, (request, response) => {
     // const id = request.params.id;
     const id = request.userId;
 
@@ -394,7 +397,7 @@ server.post('/login', async (request, response) => {
 
 //---------------USUARIOS----------------------//
 
-server.post('/orders', validateUser, (request, response) => {
+server.post('/orders', routes.validateUser, (request, response) => {
 
     let { products, total, paymentMethod } = request.body;
     let userId = request.userId;
@@ -420,7 +423,7 @@ server.post('/orders', validateUser, (request, response) => {
     response.json(newOrder);
 });
 
-server.get('/me/orders', validateUser, (request, response) => {
+server.get('/me/orders', routes.validateUser, (request, response) => {
     // const id = request.params.id;
     const id = request.userId;
 
@@ -457,7 +460,7 @@ server.get('/me/orders', validateUser, (request, response) => {
 
 });
 
-server.get('/me/orders/:id', validateUser, (request, response) => {
+server.get('/me/orders/:id', routes.validateUser, (request, response) => {
     const orderId = request.params.id;
     const userId = request.userId;
 
@@ -498,7 +501,7 @@ server.get('/me/orders/:id', validateUser, (request, response) => {
 
 //---------------SOLO ADMIN----------------------//
 
-server.get('/orders', validateUser, validateAdmin, (request, response) => {
+server.get('/orders', routes.validateUser, routes.validateAdmin, (request, response) => {
 
     let orders = [];
 
@@ -534,7 +537,7 @@ server.get('/orders', validateUser, validateAdmin, (request, response) => {
 });
 
 
-server.get('/orders/:id', validateUser, validateAdmin, (request, response) => {
+server.get('/orders/:id', routes.validateUser, routes.validateAdmin, (request, response) => {
     const id = request.params.id;
     // const reqUserId = request.userId;
 
@@ -566,7 +569,7 @@ server.get('/orders/:id', validateUser, validateAdmin, (request, response) => {
 
 });
 
-server.put('/orders/:id', validateUser, validateAdmin, (request, response) => {
+server.put('/orders/:id', routes.validateUser, routes.validateAdmin, (request, response) => {
     const id = request.params.id;
     const status = request.query;
 
