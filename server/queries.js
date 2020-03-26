@@ -7,7 +7,18 @@ const sequelize = new Sequelize("delilah_db", "root", "", {
 });
 
 
-//pasar functions a const
+//pasar functions mas abajo a const--------!!!!
+
+const insertProduct = (name, keyword, price, photo_url) => {
+
+    const query = sequelize.query("INSERT INTO products (name, keyword, price, photo_url) VALUES(?, ?, ?, ?)",
+    {replacements: [name, keyword, price, photo_url]}
+    ).then(data => {
+        return data;
+    });
+    // console.log(query);
+    return query;
+}
 
 const getAllProducts = () => {
     const query = sequelize.query("SELECT * FROM products",
@@ -24,12 +35,62 @@ const getOneProduct = (id) => {
     const query = sequelize.query("SELECT * FROM products WHERE id = ?",
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
     ).then(data => {
+        
         return data[0];
     });
     return query;
 }
 
-function getUpdatedUser(id) {
+const updateProduct = (id, name, keyword, price, photo_url) => {
+    
+    const query = sequelize.query("UPDATE products SET name = ?, keyword = ?, price = ?, photo_url = ? WHERE id = ?",
+        { replacements: [name, keyword, price, photo_url, id] }
+    ).then(data => { //hace falta?
+        
+        // let data = await getOneProduct(id);
+        return data;
+      
+        // sequelize.query("SELECT * FROM products WHERE id = ?",
+        //     { replacements: [id], type: sequelize.QueryTypes.SELECT }
+        // ).then(function (data) {
+        //     response.json({ data: data[0] }); //cambiar status code
+        // });
+
+    });
+    return query;
+}
+
+const deleteProduct = (id) => {
+
+    const query = sequelize.query("DELETE FROM products WHERE id = ?",
+        { replacements: [id] }
+    ).then(data => {
+        // console.log(data[0].affectedRows);
+        return data[0];
+        // if (data[0].affectedRows == 0) {
+        //     response.status(404).json({ msg: "Producto no encontrado" });
+        // } else {
+        //     response.status(204).send();
+        // }
+    });
+    return query;
+}
+
+//cambiar get por select en nombres de funciones?
+
+
+
+
+
+
+
+
+
+
+
+
+
+function getUpdatedUser(id) { //poner directamente get user by id
     const query = sequelize.query("SELECT id, name, username, email, address, phone_number, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
     ).then(function (data) {
@@ -133,8 +194,11 @@ function updateUser(admin, id, name, username, email, address, phone, password) 
 
 
 module.exports = {
+    insertProduct: insertProduct,
     getAllProducts: getAllProducts,
     getOneProduct: getOneProduct,
+    updateProduct: updateProduct,
+    deleteProduct: deleteProduct,
     getUpdatedUser: getUpdatedUser,
     encryptPass: encryptPass,
     checkUser: checkUser,

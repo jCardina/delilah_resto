@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 06, 2020 at 06:14 AM
+-- Generation Time: Mar 26, 2020 at 02:12 AM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.2
 
@@ -90,7 +90,12 @@ CREATE TABLE `products` (
 
 INSERT INTO `products` (`id`, `name`, `keyword`, `price`, `photo_url`) VALUES
 (1, 'Focaccia', 'focacc', 200, 'https://www.gimmesomeoven.com/wp-content/uploads/2017/03/Rosemary-Focaccia-Recipe-1.jpg'),
-(2, 'Veggie Burger', 'veggBur', 150, 'https://storage.googleapis.com/gen-atmedia/3/2019/05/a94cfde51967df5caf0f1641f53a5470df4421c1.jpeg');
+(2, 'hamburgesa vegetariana53', 'veeegieeee3', 7737, 'http://nuevaurl45'),
+(6, 'prueba', 'prueb', 55, 'http111'),
+(7, 'prueba2', 'prueb2', 55, 'http1112'),
+(11, 'prueba3', 'prueb22', 55, 'http1112'),
+(12, 'pizza', 'margarita', 55, 'http1112'),
+(13, 'pizza napolitana', 'napo', 55, 'http1112');
 
 -- --------------------------------------------------------
 
@@ -117,7 +122,8 @@ INSERT INTO `users` (`id`, `name`, `username`, `email`, `address`, `phone_number
 (1, 'Pablo Lopez', 'pabloLop', 'pablolopez@gmail.com', NULL, NULL, '3aade067651271a4bc664428236a72de', 1),
 (2, 'Maria Gonzalez', 'marGon', 'mariagonzalez@gmail.com', 'Peru 5870', 34235246, '05ca84ed54a1be215a12832ce4ad454f', 0),
 (3, 'Carla Gomez', 'car_goo', 'carlagomez@gmal.com', NULL, NULL, 'd596618d8e4c569c277096157bf8ecb9', 1),
-(6, 'Federico Perez', 'fedPe', 'federicoperez@hotmail.com', 'Prudan 3429', 44664699, 'e48b981fb62db33b98a27fc6cf8bf40a\r\n3291d3e75434f2d18191fd6fd6', 0);
+(6, 'Federico Perez', 'fedPe', 'federicoperez@hotmail.com', 'Prudan 3429', 44664699, '123', 0),
+(7, 'patricio martinez', 'martinpat', 'martinez@gmail.com', 'peru Beach', 451, '072c80bbb0dda1377b2c212b2192483c', 0);
 
 --
 -- Indexes for dumped tables
@@ -170,13 +176,13 @@ ALTER TABLE `order_products`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -1,11 +1,18 @@
-const Sequelize = require('sequelize'); //sacar de este archivo?
+// const Sequelize = require('sequelize'); //sacar de este archivo?
 
-const sequelize = new Sequelize("delilah_db", "root", "", {
-    host: "localhost",
-    dialect: "mysql",
-});
+// const sequelize = new Sequelize("delilah_db", "root", "", {
+//     host: "localhost",
+//     dialect: "mysql",
+// });
 
 const queries = require('./queries.js');
+
+//sacar?-----
+const getUpdatedUser = queries.getUpdatedUser;
+const encryptPass = queries.encryptPass;
+const updateUser = queries.updateUser;
+const checkUser = queries.checkUser;
+//--------
 
 
 
@@ -13,74 +20,19 @@ const queries = require('./queries.js');
 
 //         console.log(request);
 //         next();
-  
+
 
 // }
 
+const postProduct = async (request, response) => {
+    let { name, keyword, price, photo_url } = request.body;
 
-//----------------------------middlewares
-const jwt = require('jsonwebtoken');
-const signature = "token_Generator_3402921GtFDnL"; //sacar?
+    let post = await queries.insertProduct(name, keyword, price, photo_url);
+    let newProduct = await queries.getOneProduct(post[0]);
+    console.log(post);
 
-function splitToken(token) {
-    try {
-        let getToken = token.split(' ')[1];
-        return getToken;
-    } catch (error) {
-        return false;
-    }
+    response.status(201).json({data: newProduct}); //que datos devolver?
 }
-
-const validateUser = (request, response, next) => { //revisar
-
-    let Token = request.headers.authorization;
-
-    console.log(request.path);
-
-    const token = splitToken(Token);
-    console.log(token);
-
-    if (!token) {
-        response.status(401).json({ msj: 'Token missing' });
-        return;
-    }
-
-
-    try { //revisar funcionamiento
-
-        let verifyToken = jwt.verify(token, signature);
-        // console.log(verifyToken);
-
-
-        // if(decodedToken){
-        request.userId = verifyToken.id;
-        request.admin = verifyToken.admin;
-        console.log(verifyToken);
-        console.log(request.userId);
-        console.log(request.admin);
-        next();
-        // }else{
-        //     throw "No permmision"; //??
-        // }
-    } catch (error) {
-        response.status(401).json({ msj: 'Invalid login' }); //cambiar mensaje
-    }
-}
-
-
-
-//validar admin
-const validateAdmin = (request, response, next) => {
-    if (request.admin == 'true') {
-        next();
-    } else {
-        response.status(403).json({ msj: 'forbidden' }); //cambiar mensaje
-    }
-}
-
-
-//-----------------fin middlewares---------------------
-
 
 
 const getProducts = async (request, response) => {
@@ -100,23 +52,42 @@ const getProducts = async (request, response) => {
 const getProductById = async (request, response) => { //hace falta?
     const id = request.params.id;
 
-    // sequelize.query("SELECT * FROM products WHERE id = ?",
-    //     { replacements: [id], type: sequelize.QueryTypes.SELECT }
-    // ).then(data => {
-    //     response.json({ data: data[0] });
-    // });
     let data = await queries.getOneProduct(id);
-    response.json({ data: data});
+    response.json({ data: data });
+
+}
+
+const putProductById = async (request, response) => { //204 para put? //validar productos repetidos
+    const id = request.params.id;
+    let { name, keyword, price, photo_url } = request.body;
+
+    let update = await queries.updateProduct(id, name, keyword, price, photo_url);
+    let updatedData = await queries.getOneProduct(id);
+
+    response.json({ data: updatedData }); //cambiar status code
+
+}
+
+const deleteProductById = async (request, response) => {
+    const id = request.params.id;
+
+    let data = await queries.deleteProduct(id);
+
+    if (data.affectedRows == 0) {
+        response.status(404).json({ msg: "Producto no encontrado" });
+    } else {
+        response.status(204).send();
+    }
 
 }
 
 
 
 module.exports = {
-    splitToken: splitToken, //sacar porque esta en el mismo archivo?
-    validateUser: validateUser,
-    validateAdmin: validateAdmin,
+    postProduct: postProduct,
     getProducts: getProducts,
-    getProductById: getProductById
+    getProductById: getProductById,
+    putProductById: putProductById,
+    deleteProductById: deleteProductById
     // validateTest: validateTest
 };
