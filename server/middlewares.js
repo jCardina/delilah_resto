@@ -61,6 +61,7 @@ const validateAdmin = (request, response, next) => {
 
 module.exports = {
     // splitToken: splitToken, //sacar porque esta en el mismo archivo?
+    signature: signature,
     validateUser: validateUser,
     validateAdmin: validateAdmin
 }

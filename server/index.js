@@ -1,33 +1,25 @@
 const express = require('express');
 const server = express();
+
 const bodyParser = require('body-parser');
 const moment = require('moment'); //sacar?
-// const jwt = require('jsonwebtoken'); //sacar?
 const cors = require('cors');
 
-// const signature = "token_Generator_3402921GtFDnL"; //sacar?
-
-// const queries = require('./queries.js');
-
-
 const routes = require('./routes.js');
-
 const middlewares = require('./middlewares.js');
 
 const validateUser = middlewares.validateUser;
 const validateAdmin = middlewares.validateAdmin;
 
+const date = moment().format("YYYY-MM-DD"); //sacar y usar solo timestamp now()?
+const time = moment().format("HH:mm:ss");
 
+server.use(cors());
+server.use(bodyParser.json());
 
-//---------------------
-
-const Sequelize = require('sequelize'); //sacar de este archivo
-
-const sequelize = new Sequelize("delilah_db", "root", "", {  //sacar de este archivo
-    host: "localhost",
-    dialect: "mysql",
+server.listen(3000, () => {
+    console.log("Server status: running");
 });
-
 
 
 //order by para pedidos y limit y paginacion
@@ -44,26 +36,7 @@ const sequelize = new Sequelize("delilah_db", "root", "", {  //sacar de este arc
 // });
 
 
-// sequelize.query("INSERT INTO users (name, user_name, email, address, phone_number, password, admin) VALUES(?, ?, ?, ?, ?, ?, ?)",
-// {replacements: ["Carla Gomez", "car_goo", "carlagomez@gmal.com", "Peru 333", 23495955, "passs", 1]}
-// ).then(function(data) {
-//     console.log("user created");
-// });
-
 //agregar precio a pedido_productos y sacar total depedidos(se calcula en backend)
-//--------------------
-
-
-let date = moment().format("YYYY-MM-DD");
-let time = moment().format("HH:mm:ss");
-
-server.use(cors());
-server.use(bodyParser.json());
-
-server.listen(3000, () => {
-    console.log("Servidor iniciado...");
-});
-
 
 //agregar respuestas de errores y codigos exito/error y middlewares (token y same user)
 
@@ -71,15 +44,13 @@ server.listen(3000, () => {
 
 
 
-//---------------PRODUCTOS-------------------------------------
-
-//---------------USER----------------------//
+//---------------------------------PRODUCTS---------------------------------//
 
 server.get('/products', validateUser, routes.getProducts);
 
 server.get('/products/:id', validateUser, routes.getProductById);
 
-//---------------SOLO ADMIN----------------------//
+//---------------ADMIN ONLY---------------//
 
 server.post('/products', validateUser, validateAdmin, routes.postProduct);
 
@@ -87,19 +58,18 @@ server.put('/products/:id', validateUser, validateAdmin, routes.putProductById);
 
 server.delete('/products/:id', validateUser, validateAdmin, routes.deleteProductById);
 
-//---------------FIN PRODUCTOS-------------------------------------------
 
 
+//---------------------------------USERS---------------------------------//
 
-//-------------USUARIOS--------------------------------------------------
+server.post('/users', routes.postUser);
 
+//---------------LOGIN---------------//
 
-//---------------USER----------------------//
+server.post('/login', routes.postLogin);
 
-
-
-
-//agregar error para cuando las keys no estan bien escritas o faltan o no tienen contenido y que los numeros sean numeros
+//---------------SAME USER ONLY---------------//
+//agregar error para cuando las keys no estan bien escritas o faltan o no tienen contenido y que los numeros sean numeros y los string
 
 //revisar que la respuesta de update este actualizada
 server.get('/me', validateUser, (request, response) => {
@@ -123,7 +93,7 @@ server.put('/me', validateUser, async (request, response) => { //204 para put? V
     let checkUpUser = await checkUser(username, email, id);
 
     if (checkUpUser) {
-        response.status(402).json({ msg: "Usuario o correo ya registrado" }); //revisar codigo error
+        response.status(409).json({ msg: "Usuario o correo ya registrado" }); //cambiar mensaje
         return;
     }
 
@@ -144,11 +114,14 @@ server.put('/me', validateUser, async (request, response) => { //204 para put? V
 
 });
 
-//agregar post user y admin y delete me
-//---------------FIN USER----------------------//
 
 
-//---------------SOLO ADMIN----------------------//
+//agregar delete me
+
+
+//---------------ADMIN ONLY---------------//
+
+server.post('/users/admin', validateUser, validateAdmin, routes.postAdmin);
 
 server.get('/users', validateUser, validateAdmin, (request, response) => {
 
@@ -198,62 +171,13 @@ server.delete('/users/:id', validateUser, validateAdmin, (request, response) => 
 
 });
 
-//post cliente y admin
 //agregar try catch a todos los endpoints
-
-//---------------FIN SOLO ADMIN----------------------//
-//---------------FIN USUARIOS----------------------------------------------
-
-//---------------LOGIN---------------------------------------------------
-
-function logIn(user, password) {
-
-    let query = sequelize.query("SELECT id, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE (username = ? AND password = ?) OR (email = ? AND password = ?)",
-        { replacements: [user, password, user, password], type: sequelize.QueryTypes.SELECT }
-    ).then(data => {
-        console.log(data);
-        return data;
-    });
-
-    return query;
-
-}
-
-
-
-//revisar
-server.post('/login', async (request, response) => {
-
-    console.log(request.body);
-    let { user, password } = request.body;
-    // console.log(user);
-
-    let encrypt = await encryptPass(password);
-    password = encrypt;
-    console.log(password);
-
-    let logData = await logIn(user, password);
-
-    try {
-
-        let userInfo = { id: logData[0].id, admin: logData[0].admin };
-        console.log(userInfo);
-        let token = jwt.sign(userInfo, signature);
-
-        response.status(200).json({ token: token });
-    } catch {
-        response.status(401).json({ msj: 'Wrong user or password' }); //agregar validaciones de bad request cuando las keys faltan o estan mal escritas
-    }
-
-});
-
-//---------------FIN LOGIN----------------------------------------------
 
 //revisar que los validate same user sean en endpoints donde el path tenga el id del usuario y no del pedido o ninguno
 
-//---------------PEDIDOS----------------------------------------------
+//---------------------------------ORDERS---------------------------------//
 
-//---------------USUARIOS----------------------//
+//---------------SAME USER ONLY---------------//
 
 server.post('/orders', validateUser, (request, response) => {
 
@@ -351,13 +275,7 @@ server.get('/me/orders/:id', validateUser, (request, response) => {
 });
 
 
-
-
-
-//---------------FIN USUARIOS----------------------//
-
-
-//---------------SOLO ADMIN----------------------//
+//---------------ADMIN ONLY---------------//
 
 server.get('/orders', validateUser, validateAdmin, (request, response) => {
 
@@ -443,39 +361,23 @@ server.put('/orders/:id', validateUser, validateAdmin, (request, response) => {
 
 // agregar delete orders
 
-//---------------FIN SOLO ADMIN----------------------//
-//---------------FIN PEDIDOS----------------------------------------------
+
 
 //------------base de datos provisoria
 
 let users = [
     {
-        id: 1,
-        name: "Pablo Lopez",
         userName: "pabloLop",
-        email: "pablolopez@gmail.com",
-        address: "Doblas 243",
-        phoneNumber: 49675588,
         password: "passW",
         admin: true
     },
     {
-        id: 2,
-        name: "Maria Gonzalez",
         userName: "marGon",
-        email: "mariagonzalez@gmail.com",
-        address: "Peru 5870",
-        phoneNumber: 45635518,
         password: "passWoo",
         admin: false
     },
     {
-        id: 3,
-        name: "Marcos Perez",
         userName: "marPer",
-        email: "marcosperez@gmail.com",
-        address: "Ayacucho 1240",
-        phoneNumber: 45031319,
         password: "passWoo234",
         admin: false
     }
@@ -484,62 +386,10 @@ let users = [
 
 let products = [
     {
-        id: 1,
-        name: "Focaccia",
-        keyword: "focacc",
-        price: 200,
         photoUrl: "https://www.gimmesomeoven.com/wp-content/uploads/2017/03/Rosemary-Focaccia-Recipe-1.jpg"
     },
     {
-        id: 2,
-        name: "Veggie Burger",
-        keyword: "veggBur",
-        price: 150,
         photoUrl: "https://storage.googleapis.com/gen-atmedia/3/2019/05/a94cfde51967df5caf0f1641f53a5470df4421c1.jpeg"
     }
 
 ];
-
-let orders = [
-    {
-        orderId: 1, //cambiar por id y productId
-        products: [
-            {
-                id: 2,
-                quantity: 1
-            },
-            {
-                id: 1,
-                quantity: 2
-            },
-        ],
-        total: 550,
-        userId: 2,
-        paymentMethod: "efectivo",
-        timeStamp: "18:29",
-        date: "10-02-2020",
-        status: "confirmado"
-    },
-    {
-        orderId: 2,
-        products: [
-            {
-                id: 1,
-                quantity: 1
-            },
-            {
-                id: 2,
-                quantity: 1
-            },
-        ],
-        total: 350,
-        userId: 3,
-        paymentMethod: "tarjeta",
-        timeStamp: "17:50",
-        date: "10-02-2020",
-        status: "nuevo"
-    }
-];
-
-
-//---------------------------------

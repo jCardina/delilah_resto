@@ -7,12 +7,15 @@ const sequelize = new Sequelize("delilah_db", "root", "", {
 });
 
 
+
+
+
 //pasar functions mas abajo a const--------!!!!
 
-const insertProduct = (name, keyword, price, photo_url) => {
+const createProduct = (name, keyword, price, photo_url) => {
 
     const query = sequelize.query("INSERT INTO products (name, keyword, price, photo_url) VALUES(?, ?, ?, ?)",
-    {replacements: [name, keyword, price, photo_url]}
+        { replacements: [name, keyword, price, photo_url] }
     ).then(data => {
         return data;
     });
@@ -35,21 +38,21 @@ const getOneProduct = (id) => {
     const query = sequelize.query("SELECT * FROM products WHERE id = ?",
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
     ).then(data => {
-        
+
         return data[0];
     });
     return query;
 }
 
 const updateProduct = (id, name, keyword, price, photo_url) => {
-    
+
     const query = sequelize.query("UPDATE products SET name = ?, keyword = ?, price = ?, photo_url = ? WHERE id = ?",
         { replacements: [name, keyword, price, photo_url, id] }
     ).then(data => { //hace falta?
-        
+
         // let data = await getOneProduct(id);
         return data;
-      
+
         // sequelize.query("SELECT * FROM products WHERE id = ?",
         //     { replacements: [id], type: sequelize.QueryTypes.SELECT }
         // ).then(function (data) {
@@ -78,12 +81,78 @@ const deleteProduct = (id) => {
 
 //cambiar get por select en nombres de funciones?
 
+const getLogData = (user, password) => {
+
+    let query = sequelize.query("SELECT id, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE (username = ? AND password = ?) OR (email = ? AND password = ?)",
+        { replacements: [user, password, user, password], type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        console.log(data);
+        return data;
+    });
+
+    return query;
+
+}
+
+const createUser = (name, username, email, password, admin, address, phone_number) => {
+
+    const query = sequelize.query("INSERT INTO users (name, username, email, password, admin, address, phone_number) VALUES(?, ?, ?, ?, ?, ?, ?)",
+        { replacements: [name, username, email, password, admin, address, phone_number] }
+    ).then(data => {
+        console.log(data);
+        return data;
+    });
+    return query;
+}
 
 
 
 
 
 
+
+
+
+
+
+
+
+const encryptPass = (pass) => {
+
+    let encrypted = sequelize.query("SELECT md5(?)",
+        { replacements: [pass], type: sequelize.QueryTypes.SELECT }
+    ).then(function (data) {
+
+        let hash = Object.values(data[0])[0];
+        // console.log(hash);
+
+        return hash;
+    });
+    return encrypted;
+}
+
+const checkUser = (user, email, id) => {
+
+    let userMatch = sequelize.query("SELECT username, email FROM users WHERE (username = ? OR email = ?) AND id != ?",
+        { replacements: [user, email, id], type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        console.log(data);
+        if (data.length > 0) { //revisar
+
+            if (user == data[0].username) {
+                
+                return "Username";
+
+            } else {
+                return "Email";
+            }
+
+        } else {
+            return false;
+        }
+    });
+    return userMatch;
+}
 
 
 
@@ -99,34 +168,6 @@ function getUpdatedUser(id) { //poner directamente get user by id
         return data[0];
     });
     return query;
-}
-
-function encryptPass(pass) {
-
-    let encrypted = sequelize.query("SELECT md5(?)",
-        { replacements: [pass], type: sequelize.QueryTypes.SELECT }
-    ).then(function (data) {
-
-        let hash = Object.values(data[0])[0];
-        // console.log(hash);
-
-        return hash;
-    });
-    return encrypted;
-}
-
-function checkUser(user, email, id) {
-
-    let userMatch = sequelize.query("SELECT username, email FROM users WHERE (username = ? OR email = ?) AND id != ?",
-        { replacements: [user, email, id], type: sequelize.QueryTypes.SELECT }
-    ).then(data => {
-        if (data.length > 0) {
-            return true;
-        } else {
-            return false;
-        }
-    });
-    return userMatch;
 }
 
 function updateUser(admin, id, name, username, email, address, phone, password) {
@@ -194,11 +235,13 @@ function updateUser(admin, id, name, username, email, address, phone, password) 
 
 
 module.exports = {
-    insertProduct: insertProduct,
+    createProduct: createProduct,
     getAllProducts: getAllProducts,
     getOneProduct: getOneProduct,
     updateProduct: updateProduct,
     deleteProduct: deleteProduct,
+    getLogData: getLogData,
+    createUser: createUser,
     getUpdatedUser: getUpdatedUser,
     encryptPass: encryptPass,
     checkUser: checkUser,
