@@ -58,7 +58,7 @@ server.get('/products/:id', validateUser, routes.getProductById);
 
 server.post('/products', validateUser, validateAdmin, routes.postProduct);
 
-server.put('/products/:id', validateUser, validateAdmin, routes.putProductById);
+server.patch('/products/:id', validateUser, validateAdmin, routes.patchProductById);
 
 server.delete('/products/:id', validateUser, validateAdmin, routes.deleteProductById);
 

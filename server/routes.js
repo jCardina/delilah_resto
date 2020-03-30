@@ -11,9 +11,15 @@ const checkUser = queries.checkUser;
 //PRODUCTS------------------------------
 
 const postProduct = async (request, response) => {
-    let { name, keyword, price, photo_url } = request.body;
+    let { name, keyword, price, photo_url, stock } = request.body;
 
-    let post = await queries.createProduct(name, keyword, price, photo_url);
+    if (name == undefined || keyword == undefined || price == undefined || photo_url == undefined || stock == undefined) {
+
+        response.status(400).send();
+        return;
+    }
+
+    let post = await queries.createProduct(name, keyword, price, photo_url, stock); //validar que esten todos los datos y que no exista otro activo
     let newProduct = await queries.getOneProduct(post[0]);
     console.log(post);
 
@@ -24,25 +30,25 @@ const postProduct = async (request, response) => {
 const getProducts = async (request, response) => {
 
 
-    let data = await queries.getAllProducts();
+    let data = await queries.getAllProducts(request.admin);
     response.json({ data: data });
 
 }
 
 
-const getProductById = async (request, response) => { //hace falta?
+const getProductById = async (request, response) => { //hace falta? agregar 404
     const id = request.params.id;
 
-    let data = await queries.getOneProduct(id);
+    let data = await queries.getOneProduct(id, request.admin);
     response.json({ data: data });
 
 }
 
-const putProductById = async (request, response) => { //204 para put? //validar productos repetidos
+const patchProductById = async (request, response) => { //204 para put? //validar productos repetidos
     const id = request.params.id;
-    let { name, keyword, price, photo_url } = request.body;
+    let { name, keyword, price, photo_url, stock } = request.body;
 
-    let update = await queries.updateProduct(id, name, keyword, price, photo_url);
+    let update = await queries.updateProduct(id, name, keyword, price, photo_url, stock);
     let updatedData = await queries.getOneProduct(id);
 
     response.json({ data: updatedData }); //cambiar status code
@@ -51,7 +57,7 @@ const putProductById = async (request, response) => { //204 para put? //validar 
 
 const deleteProductById = async (request, response) => {
     const id = request.params.id;
-
+    //agregar borrado logico
     let data = await queries.deleteProduct(id);
 
     if (data.affectedRows == 0) {
@@ -251,7 +257,7 @@ module.exports = {
     postProduct: postProduct,
     getProducts: getProducts,
     getProductById: getProductById,
-    putProductById: putProductById,
+    patchProductById: patchProductById,
     deleteProductById: deleteProductById,
     postLogin: postLogin,
     postUser: postUser,

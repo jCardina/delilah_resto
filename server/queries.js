@@ -12,10 +12,10 @@ const sequelize = new Sequelize("delilah_db", "root", "", {
 
 //pasar functions mas abajo a const--------!!!!
 
-const createProduct = (name, keyword, price, photo_url) => {
+const createProduct = (name, keyword, price, photo_url, stock) => {
 
-    const query = sequelize.query("INSERT INTO products (name, keyword, price, photo_url) VALUES(?, ?, ?, ?)",
-        { replacements: [name, keyword, price, photo_url] }
+    const query = sequelize.query("INSERT INTO products (name, keyword, price, photo_url, stock, status) VALUES(?, ?, ?, ?, ?, ?)",
+        { replacements: [name, keyword, price, photo_url, stock, "active"] }
     ).then(data => {
         return data;
     });
@@ -23,8 +23,22 @@ const createProduct = (name, keyword, price, photo_url) => {
     return query;
 }
 
-const getAllProducts = () => {
-    const query = sequelize.query("SELECT * FROM products",
+const getAllProducts = (admin) => {
+
+    let queryString = "SELECT ";
+
+    if (admin == "true") {
+
+        queryString += "* FROM products WHERE status = 'active'";
+
+    } else {
+
+        queryString += "id, name, keyword, price, photo_url, stock FROM products WHERE status = 'active' AND stock > 0";
+
+    }
+
+
+    const query = sequelize.query(queryString,
         { type: sequelize.QueryTypes.SELECT }
     ).then(data => {
         return data;
@@ -33,9 +47,23 @@ const getAllProducts = () => {
     return query;
 }
 
-const getOneProduct = (id) => {
+const getOneProduct = (id, admin) => {
 
-    const query = sequelize.query("SELECT * FROM products WHERE id = ?",
+    let queryString = "SELECT ";
+
+    if (admin == "true") {
+
+        queryString += "* FROM products WHERE status = 'active'";
+
+    } else {
+
+        queryString += "id, name, keyword, price, photo_url, stock FROM products WHERE status = 'active' AND stock > 0";
+
+    }
+
+    queryString += " AND id = ?";
+
+    const query = sequelize.query(queryString,
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
     ).then(data => {
 
@@ -44,23 +72,81 @@ const getOneProduct = (id) => {
     return query;
 }
 
-const updateProduct = (id, name, keyword, price, photo_url) => {
+const updateProduct = (id, name, keyword, price, photo_url, stock) => {
 
-    const query = sequelize.query("UPDATE products SET name = ?, keyword = ?, price = ?, photo_url = ? WHERE id = ?",
-        { replacements: [name, keyword, price, photo_url, id] }
-    ).then(data => { //hace falta?
+    let queryString = "UPDATE products SET ";
+    let replace = [];
+    let firstClmn = true;
 
-        // let data = await getOneProduct(id);
-        return data;
+    if (name != undefined) {
 
-        // sequelize.query("SELECT * FROM products WHERE id = ?",
-        //     { replacements: [id], type: sequelize.QueryTypes.SELECT }
-        // ).then(function (data) {
-        //     response.json({ data: data[0] }); //cambiar status code
-        // });
+        queryString += "name = ?";
+        replace.push(name);
+        firstClmn = false;
 
+    }
+
+    if (keyword != undefined) {
+
+        if (!firstClmn) {
+            queryString += ", keyword = ?";
+        } else {
+            queryString += "keyword = ?";
+            firstClmn = false;
+        }
+
+        replace.push(keyword);
+    }
+
+    if (price != undefined) {
+
+        if (!firstClmn) {
+            queryString += ", price = ?";
+        } else {
+            queryString += "price = ?";
+            firstClmn = false;
+        }
+        replace.push(price);
+
+    }
+
+    if (photo_url != undefined) {
+
+        if (!firstClmn) {
+            queryString += ", photo_url = ?";
+        } else {
+            queryString += "photo_url = ?";
+            firstClmn = false;
+        }
+        replace.push(photo_url);
+
+    }
+
+
+    if (stock != undefined) {
+
+        if (!firstClmn) {
+            queryString += ", stock = ?";
+        } else {
+            queryString += "stock = ?";
+            firstClmn = false;
+        }
+        replace.push(stock);
+
+    }
+
+    queryString += " WHERE id = ?"
+    replace.push(id);
+
+    const query = sequelize.query(queryString,
+        { replacements: replace }
+    ).then(data => {
+        console.log(data);
+        return data[0];
     });
+
     return query;
+
 }
 
 const deleteProduct = (id) => {
