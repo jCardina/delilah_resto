@@ -2,7 +2,17 @@
 const jwt = require('jsonwebtoken');
 const signature = "token_Generator_3402921GtFDnL";
 
-function splitToken(token) {
+const serverErrorHandler = (error, req, res, next) => {
+    
+    if(!error) {
+        
+        return next();
+    }
+    console.log('There has been an error', error);
+    res.status(500).send('Error');
+}
+
+const splitToken = (token) => {
     try {
         let getToken = token.split(' ')[1];
         return getToken;
@@ -61,6 +71,7 @@ const validateAdmin = (request, response, next) => {
 
 module.exports = {
     // splitToken: splitToken, //sacar porque esta en el mismo archivo?
+    serverErrorHandler: serverErrorHandler,
     signature: signature,
     validateUser: validateUser,
     validateAdmin: validateAdmin

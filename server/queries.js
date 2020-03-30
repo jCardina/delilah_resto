@@ -68,13 +68,7 @@ const deleteProduct = (id) => {
     const query = sequelize.query("DELETE FROM products WHERE id = ?",
         { replacements: [id] }
     ).then(data => {
-        // console.log(data[0].affectedRows);
         return data[0];
-        // if (data[0].affectedRows == 0) {
-        //     response.status(404).json({ msg: "Producto no encontrado" });
-        // } else {
-        //     response.status(204).send();
-        // }
     });
     return query;
 }
@@ -106,6 +100,126 @@ const createUser = (name, username, email, password, admin, address, phone_numbe
 }
 
 
+const getAllUsers = () => {
+
+    const query = sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users",
+        { type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        return data;
+    });
+    return query;
+}
+
+
+const getOneUser = (id) => {
+
+    const query = sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
+        { replacements: [id], type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        return data[0];
+    });
+    return query;
+
+}
+
+const deleteUser = (id) => {
+
+    const query = sequelize.query("DELETE FROM users WHERE id = ?",
+        { replacements: [id] }
+    ).then(data => {
+        return data[0];
+    });
+    return query;
+}
+
+
+const updateUser = (id, name, username, email, address, phone, password) => {
+
+    let queryString = "UPDATE users SET ";
+    let replace = [];
+    let firstClmn = true;
+
+    if (name != undefined) {
+
+        queryString += "name = ?";
+        replace.push(name);
+        firstClmn = false;
+
+    }
+
+    if (username != undefined) {
+
+        if (!firstClmn) {
+            queryString += ", username = ?";
+        } else {
+            queryString += "username = ?";
+            firstClmn = false;
+        }
+
+        replace.push(username);
+    }
+
+    if (email != undefined) {
+
+        if (!firstClmn) {
+            queryString += ", email = ?";
+        } else {
+            queryString += "email = ?";
+            firstClmn = false;
+        }
+        replace.push(email);
+
+    }
+
+    if (address != undefined) {
+
+        if (!firstClmn) {
+            queryString += ", address = ?";
+        } else {
+            queryString += "address = ?";
+            firstClmn = false;
+        }
+        replace.push(address);
+
+    }
+
+    if (phone != undefined) {
+
+        if (!firstClmn) {
+            queryString += ", phone_number = ?";
+        } else {
+            queryString += "phone_number = ?";
+            firstClmn = false;
+        }
+        replace.push(phone);
+
+    }
+
+    if (password != undefined) {
+
+        if (!firstClmn) {
+            queryString += ", password = ?";
+        } else {
+            queryString += "password = ?";
+            firstClmn = false;
+        }
+        replace.push(password);
+
+    }
+
+    queryString += " WHERE id = ?"
+    replace.push(id);
+
+    const query = sequelize.query(queryString,
+        { replacements: replace }
+    ).then(data => {
+        console.log(data);
+        return data[0];
+    });
+
+    return query;
+
+}
 
 
 
@@ -116,6 +230,8 @@ const createUser = (name, username, email, password, admin, address, phone_numbe
 
 
 
+
+//---------------
 
 const encryptPass = (pass) => {
 
@@ -130,7 +246,7 @@ const encryptPass = (pass) => {
     });
     return encrypted;
 }
-
+//---------
 const checkUser = (user, email, id) => {
 
     let userMatch = sequelize.query("SELECT username, email FROM users WHERE (username = ? OR email = ?) AND id != ?",
@@ -140,7 +256,7 @@ const checkUser = (user, email, id) => {
         if (data.length > 0) { //revisar
 
             if (user == data[0].username) {
-                
+
                 return "Username";
 
             } else {
@@ -159,78 +275,10 @@ const checkUser = (user, email, id) => {
 
 
 
-function getUpdatedUser(id) { //poner directamente get user by id
-    const query = sequelize.query("SELECT id, name, username, email, address, phone_number, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
-        { replacements: [id], type: sequelize.QueryTypes.SELECT }
-    ).then(function (data) {
-        // response.json({ data: data[0] }); //cambiar status code
-        // console.log(data);
-        return data[0];
-    });
-    return query;
-}
 
-function updateUser(admin, id, name, username, email, address, phone, password) {
+//------------------
 
-    let userNoPass = "UPDATE users SET name = ?, username = ?, email = ?, address = ?, phone_number = ? WHERE id = ?";
-    let userPass = "UPDATE users SET name = ?, username = ?, email = ?, address = ?, phone_number = ?, password = ? WHERE id = ?";
-    let adminNoPass = "UPDATE users SET name = ?, username = ?, email = ? WHERE id = ?";
-    let adminPass = "UPDATE users SET name = ?, username = ?, email = ?, password = ? WHERE id = ?";
-    let query;
 
-    if (password != undefined && admin == "false") {
-
-        // password = await encryptPass(password);
-
-        query = sequelize.query(userPass,
-            { replacements: [name, username, email, address, phone, password, id] }
-        ).then(data => {
-            //hace falta el then? agregar return a todos los if
-            console.log("then");
-            return data;
-        });
-        console.log("return");
-        return query;
-    }
-
-    if (password == undefined && admin == "false") {
-
-        query = sequelize.query(userNoPass,
-            { replacements: [name, username, email, address, phone, id] }
-        ).then(data => {
-            //hace falta el then?
-            return data;
-        });
-        return query;
-
-    }
-
-    if (password != undefined && admin == "true") {
-
-        // password = await encryptPass(password);
-
-        query = sequelize.query(adminPass,
-            { replacements: [name, username, email, password, id] } //encriptar
-        ).then(data => {
-            //hace falta el then?
-            return data;
-        });
-        return query;
-
-    }
-
-    if (password == undefined && admin == "true") {
-
-        query = sequelize.query(adminNoPass,
-            { replacements: [name, username, email, id] }
-        ).then(data => {
-            //hace falta el then?
-            return data;
-        });
-
-        return query;
-    }
-}
 
 
 
@@ -242,8 +290,10 @@ module.exports = {
     deleteProduct: deleteProduct,
     getLogData: getLogData,
     createUser: createUser,
-    getUpdatedUser: getUpdatedUser,
+    getAllUsers: getAllUsers,
+    getOneUser: getOneUser,
+    deleteUser: deleteUser,
+    updateUser: updateUser, //
     encryptPass: encryptPass,
-    checkUser: checkUser,
-    updateUser: updateUser
+    checkUser: checkUser
 };

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 26, 2020 at 02:12 AM
+-- Generation Time: Mar 30, 2020 at 05:12 PM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.2
 
@@ -81,21 +81,23 @@ CREATE TABLE `products` (
   `name` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
   `keyword` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
   `price` int(10) UNSIGNED NOT NULL,
-  `photo_url` varchar(300) COLLATE utf8_unicode_ci NOT NULL
+  `photo_url` varchar(300) COLLATE utf8_unicode_ci NOT NULL,
+  `stock` int(11) NOT NULL,
+  `status` varchar(60) COLLATE utf8_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- Dumping data for table `products`
 --
 
-INSERT INTO `products` (`id`, `name`, `keyword`, `price`, `photo_url`) VALUES
-(1, 'Focaccia', 'focacc', 200, 'https://www.gimmesomeoven.com/wp-content/uploads/2017/03/Rosemary-Focaccia-Recipe-1.jpg'),
-(2, 'hamburgesa vegetariana53', 'veeegieeee3', 7737, 'http://nuevaurl45'),
-(6, 'prueba', 'prueb', 55, 'http111'),
-(7, 'prueba2', 'prueb2', 55, 'http1112'),
-(11, 'prueba3', 'prueb22', 55, 'http1112'),
-(12, 'pizza', 'margarita', 55, 'http1112'),
-(13, 'pizza napolitana', 'napo', 55, 'http1112');
+INSERT INTO `products` (`id`, `name`, `keyword`, `price`, `photo_url`, `stock`, `status`) VALUES
+(1, 'Focaccia', 'focacc', 200, 'https://www.gimmesomeoven.com/wp-content/uploads/2017/03/Rosemary-Focaccia-Recipe-1.jpg', 20, 'active'),
+(2, 'hamburgesa vegetariana53', 'veeegieeee3', 7737, 'http://nuevaurl45', 10, 'active'),
+(6, 'prueba', 'prueb', 55, 'http111', 15, 'active'),
+(7, 'prueba2', 'prueb2', 55, 'http1112', 0, 'active'),
+(11, 'prueba3', 'prueb22', 55, 'http1112', 1, 'active'),
+(12, 'pizza', 'margarita', 55, 'http1112', 25, 'inactive'),
+(13, 'pizza napolitana', 'napo', 55, 'http1112', 30, 'active');
 
 -- --------------------------------------------------------
 
@@ -109,7 +111,7 @@ CREATE TABLE `users` (
   `username` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
   `email` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
   `address` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `phone_number` int(10) UNSIGNED DEFAULT NULL,
+  `phone_number` varchar(16) COLLATE utf8_unicode_ci DEFAULT NULL,
   `password` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
   `admin` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -120,10 +122,13 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `name`, `username`, `email`, `address`, `phone_number`, `password`, `admin`) VALUES
 (1, 'Pablo Lopez', 'pabloLop', 'pablolopez@gmail.com', NULL, NULL, '3aade067651271a4bc664428236a72de', 1),
-(2, 'Maria Gonzalez', 'marGon', 'mariagonzalez@gmail.com', 'Peru 5870', 34235246, '05ca84ed54a1be215a12832ce4ad454f', 0),
+(2, 'Maria Gonzalez', 'marGon', 'mariagonzalez@gmail.com', 'Peru 5870', '34235246', '05ca84ed54a1be215a12832ce4ad454f', 0),
 (3, 'Carla Gomez', 'car_goo', 'carlagomez@gmal.com', NULL, NULL, 'd596618d8e4c569c277096157bf8ecb9', 1),
-(6, 'Federico Perez', 'fedPe', 'federicoperez@hotmail.com', 'Prudan 3429', 44664699, '123', 0),
-(7, 'patricio martinez', 'martinpat', 'martinez@gmail.com', 'peru Beach', 451, '072c80bbb0dda1377b2c212b2192483c', 0);
+(6, 'Federico Perez', 'fedPe', 'federicoperez@hotmail.com', 'Prudan 3429', '44664699', '123', 0),
+(7, 'patricio martinez', 'martinpat', 'martinPREUBA663ez@gmail.com', 'peru Beach 233', '32224', '072c80bbb0dda1377b2c212b2192483c', 0),
+(8, 'Pablo prueba', 'papa', 'pablo@gmal.com', 'weefe', '0', '202cb962ac59075b964b07152d234b70', 0),
+(9, 'Pablo prueba', 'papa2', 'pablo2@gmal.com', 'weefe', '243524646', '81dc9bdb52d04dc20036dbd8313ed055', 0),
+(12, 'Pablo prueba', 'papa9n', 'pablo235ee@gmal.com', 'heteheh', '231624643', 'e10adc3949ba59abbe56e057f20f883e', 0);
 
 --
 -- Indexes for dumped tables
@@ -182,7 +187,7 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

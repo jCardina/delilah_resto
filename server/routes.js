@@ -1,9 +1,3 @@
-// const Sequelize = require('sequelize'); //sacar de este archivo?
-
-// const sequelize = new Sequelize("delilah_db", "root", "", {
-//     host: "localhost",
-//     dialect: "mysql",
-// });
 
 const jwt = require('jsonwebtoken');
 const signature = require('./middlewares.js').signature;
@@ -11,12 +5,8 @@ const signature = require('./middlewares.js').signature;
 const queries = require('./queries.js');
 
 const encryptPass = queries.encryptPass;
-
-//sacar?-----
-const getUpdatedUser = queries.getUpdatedUser;
-const updateUser = queries.updateUser;
 const checkUser = queries.checkUser;
-//--------
+
 
 //PRODUCTS------------------------------
 
@@ -27,7 +17,7 @@ const postProduct = async (request, response) => {
     let newProduct = await queries.getOneProduct(post[0]);
     console.log(post);
 
-    response.status(201).json({data: newProduct}); //que datos devolver?
+    response.status(201).json({ data: newProduct }); //que datos devolver?
 }
 
 
@@ -79,14 +69,14 @@ const postLogin = async (request, response) => { //revisar
 
     // console.log(request.body);
     let { user, password } = request.body;
-    
+
     if (user == undefined || password == undefined) { //agregar validaciones de bad request cuando las keys faltan o estan mal escritas en todas las rutas
         response.status(400).send();
         return;
     }
 
     password = await encryptPass(password);
-    
+
     console.log(password);
 
     let logData = await queries.getLogData(user, password);
@@ -127,10 +117,10 @@ const postUser = async (request, response) => {
     }
 
     password = await encryptPass(password);
-    
+
     let admin = 0;
 
-    let create = await queries.createUser(name, username, email, address, phone_number, password, admin);
+    let create = await queries.createUser(name, username, email, password, admin, address, phone_number);
 
     response.status(201).json({ msg: "User created" });
 }
@@ -156,7 +146,7 @@ const postAdmin = async (request, response) => {
     }
 
     password = await encryptPass(password);
-    
+
     let admin = 1;
 
     let create = await queries.createUser(name, username, email, password, admin);
@@ -164,6 +154,86 @@ const postAdmin = async (request, response) => {
     response.status(201).json({ msg: "Admin user created" });
 }
 
+
+const getUsers = async (request, response) => {
+
+    let data = await queries.getAllUsers();
+    response.json({ data: data });
+}
+
+const getUserById = async (request, response) => {
+
+    const id = request.params.id;
+
+    let data = await queries.getOneUser(id);
+    response.json({ data: data });
+
+}
+
+const deleteUserById = async (request, response) => {
+    const id = request.params.id;
+    //agregar borrado logico
+
+    let data = await queries.deleteUser(id);
+
+    if (data.affectedRows == 0) {
+        response.status(404).json({ msg: "User not found" });
+    } else {
+        response.status(204).send();
+    }
+
+}
+
+
+const getSameUser = async (request, response) => {
+    let data = await queries.getOneUser(request.userId);
+    response.json({ data: data });
+
+}
+
+
+const patchSameUser = async (request, response) => {
+
+    const id = request.userId;
+    let { name, username, email, address, phone_number, password } = request.body;
+
+    if (username != undefined || email != undefined) {
+
+        let checkUpUser = await checkUser(username, email, id);
+
+        if (checkUpUser) {
+            response.status(409).json({ msg: checkUpUser + " already registered" }); //cambiar mensaje?
+            return;
+        }
+    }
+
+    if (password != undefined) {
+        password = await encryptPass(password);
+    }
+
+
+    let update = await queries.updateUser(id, name, username, email, address, phone_number, password);
+
+    let updatedInfo = await queries.getOneUser(id);
+    // console.log(updatedInfo);
+
+    response.json({ data: updatedInfo });
+
+}
+
+const deleteSameUser = async (request, response) => {
+    const id = request.userId;
+    //agregar borrado logico
+
+    let data = await queries.deleteUser(id);
+
+    if (data.affectedRows == 0) {
+        response.status(404).json({ msg: "User not found" }); //cambiar mensaje o sacar?
+    } else {
+        response.status(204).send();
+    }
+
+}
 
 
 
@@ -185,5 +255,11 @@ module.exports = {
     deleteProductById: deleteProductById,
     postLogin: postLogin,
     postUser: postUser,
-    postAdmin: postAdmin
+    postAdmin: postAdmin,
+    getUsers: getUsers,
+    getUserById: getUserById,
+    deleteUserById: deleteUserById,
+    getSameUser: getSameUser,
+    patchSameUser: patchSameUser,
+    deleteSameUser: deleteSameUser
 };

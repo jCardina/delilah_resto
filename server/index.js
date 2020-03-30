@@ -17,6 +17,10 @@ const time = moment().format("HH:mm:ss");
 server.use(cors());
 server.use(bodyParser.json());
 
+
+server.use(middlewares.serverErrorHandler);
+
+
 server.listen(3000, () => {
     console.log("Server status: running");
 });
@@ -36,7 +40,7 @@ server.listen(3000, () => {
 // });
 
 
-//agregar precio a pedido_productos y sacar total depedidos(se calcula en backend)
+//agregar precio a pedido_productos y sacar total depedidos(se calcula en backend), borrado logico de productos y usuarios
 
 //agregar respuestas de errores y codigos exito/error y middlewares (token y same user)
 
@@ -72,106 +76,31 @@ server.post('/login', routes.postLogin);
 //agregar error para cuando las keys no estan bien escritas o faltan o no tienen contenido y que los numeros sean numeros y los string
 
 //revisar que la respuesta de update este actualizada
-server.get('/me', validateUser, (request, response) => {
+server.get('/users/me', validateUser, routes.getSameUser);
 
-    // const newid = request.userId;
-    const id = request.userId;
+server.patch('/users/me', validateUser, routes.patchSameUser);
 
-    sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
-        { replacements: [id], type: sequelize.QueryTypes.SELECT }
-    ).then(data => {
-        response.json({ data: data[0] });
-    });
-});
-
-server.put('/me', validateUser, async (request, response) => { //204 para put? VALIDAR QUE NO SE REPITA USERNAME NI EMAIL y que no haya nulls
-    // const id = request.params.id;
-    const id = request.userId;
-    let { name, username, email, address, phone_number, password } = request.body;
-
-
-    let checkUpUser = await checkUser(username, email, id);
-
-    if (checkUpUser) {
-        response.status(409).json({ msg: "Usuario o correo ya registrado" }); //cambiar mensaje
-        return;
-    }
-
-    if (password != undefined) {
-        password = await encryptPass(password);
-    }
-
-
-    let update = await updateUser(request.admin, id, name, username, email, address, phone_number, password);
-
-    let updatedInfo = await getUpdatedUser(id);
-    // console.log(updatedInfo);
-
-    response.json({ data: updatedInfo }); //cambiar status code
-
-
-    // //volver
-
-});
-
-
-
-//agregar delete me
-
+server.delete('/users/me', validateUser, routes.deleteSameUser);
 
 //---------------ADMIN ONLY---------------//
 
 server.post('/users/admin', validateUser, validateAdmin, routes.postAdmin);
 
-server.get('/users', validateUser, validateAdmin, (request, response) => {
+server.get('/users', validateUser, validateAdmin, routes.getUsers);
 
-    sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users",
-        { type: sequelize.QueryTypes.SELECT }
-    ).then(data => {
-        response.json({ data: data });
-    });
-});
+server.get('/users/:id', validateUser, validateAdmin, routes.getUserById);
 
-server.get('/users/:id', validateUser, validateAdmin, (request, response) => {
-
-    const id = request.params.id;
-
-    sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
-        { replacements: [id], type: sequelize.QueryTypes.SELECT }
-    ).then(data => {
-        response.json({ data: data[0] });
-    });
-});
-
+server.delete('/users/:id', validateUser, validateAdmin, routes.deleteUserById);
 
 
 // agregar data envelope y revisar que si devuelve un objeto no este en array
-//agregar validaciones de repeticion de usuario
+//agregar validaciones de repeticion de usuario y producto
 
 //sql NOW para hora y fecha sacar moment?
 
 
-server.delete('/users/:id', validateUser, validateAdmin, (request, response) => {
-    // const id = request.params.id;
-    const id = request.userId;
 
-    users.forEach(element => {
-        if (element.id == id) {
-
-            let index = users.indexOf(element);
-
-            users.splice(index, 1);
-
-            console.log(users);
-
-            response.statusCode = 204;
-            response.send();
-        }
-    });
-
-});
-
-//agregar try catch a todos los endpoints
+//agregar try catch a todos los endpoints y error server 500
 
 //revisar que los validate same user sean en endpoints donde el path tenga el id del usuario y no del pedido o ninguno
 
@@ -205,7 +134,7 @@ server.post('/orders', validateUser, (request, response) => {
     response.json(newOrder);
 });
 
-server.get('/me/orders', validateUser, (request, response) => {
+server.get('/me/orders', validateUser, (request, response) => { //agregar users y ver si funcionas
     // const id = request.params.id;
     const id = request.userId;
 
@@ -242,7 +171,7 @@ server.get('/me/orders', validateUser, (request, response) => {
 
 });
 
-server.get('/me/orders/:id', validateUser, (request, response) => {
+server.get('/me/orders/:id', validateUser, (request, response) => { //agregar users y ver si funcionas
     const orderId = request.params.id;
     const userId = request.userId;
 
@@ -360,6 +289,8 @@ server.put('/orders/:id', validateUser, validateAdmin, (request, response) => {
 });
 
 // agregar delete orders
+
+
 
 
 
