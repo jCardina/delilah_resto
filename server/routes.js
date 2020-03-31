@@ -312,7 +312,24 @@ const postOrder = async (request, response) => {
     let { products, payment_method } = request.body;
     let total = 0;
 
+    if (typeof(products) != "object" || products.length == undefined || products.length < 1) {
+        response.status(400).json({ msg: "List of products missing" });
+        return;
+    }
+
+    if (payment_method != "efectivo" && payment_method != "tarjeta") {
+        response.status(400).json({ msg: "Invalid payment method" });
+        return;
+    }
+
     for (i = 0; i < products.length; i++) {
+
+        let quantity = products[i].quantity;
+
+        if (typeof(quantity) != "number" || parseInt(quantity) < 1) {
+            response.status(400).json({ msg: "Invalid quantity" });
+            return;
+        }
 
         let product = await queries.getOneProduct(products[i].id);
 
@@ -325,6 +342,7 @@ const postOrder = async (request, response) => {
             response.status(409).json({ msg: "Not enough items in stock, product_id: " + product.id });
             return;
         }
+        
 
         products[i].price = product.price;
         products[i].stock = product.stock;
@@ -343,12 +361,11 @@ const postOrder = async (request, response) => {
     }
 
     await queries.createOrder(userId, products, total, payment_method);
-    //query insert pedido
+    
 
-    //---otro for insert producto_pedido y restar stock
+//-----------------------
 
-
-
+    // seguir respuesta!!!!
 
     // orders.push(newOrder);
     // console.log(orders);
@@ -357,7 +374,28 @@ const postOrder = async (request, response) => {
     // response.json(newOrder);
 }
 
+const getOrders = async (request, response) => {
 
+    let orders = await queries.getAllOrders();
+
+    // console.log(orders);
+
+        // for (i = 0; i < orders.length; i++) {
+
+        //     const order = orders[i];
+        //     const products = await sequelize.query("SELECT op.product_id, op.price, op.quantity FROM order_products op WHERE op.order_id = ?",
+        //         { replacements: [order.id], type: sequelize.QueryTypes.SELECT }
+        //     ).then(function (data) {
+
+        //         order.products = data;
+
+        //     });
+        // }
+
+
+        response.json({ data: orders });
+
+}
 
 
 
@@ -378,5 +416,6 @@ module.exports = {
     getSameUser: getSameUser,
     patchSameUser: patchSameUser,
     deleteSameUser: deleteSameUser,
-    postOrder: postOrder
+    postOrder: postOrder,
+    getOrders: getOrders
 };

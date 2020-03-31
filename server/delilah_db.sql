@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 31, 2020 at 05:49 PM
+-- Generation Time: Mar 31, 2020 at 10:55 PM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.2
 
@@ -51,7 +51,16 @@ INSERT INTO `orders` (`id`, `user_id`, `total`, `payment_method`, `timestamp`, `
 (7, 9, 460, 'tarjeta', '2020-03-31 15:35:55', 'nuevo'),
 (8, 9, 460, 'tarjeta', '2020-03-31 15:37:26', 'nuevo'),
 (9, 9, 561, 'tarjeta', '2020-03-31 15:43:42', 'nuevo'),
-(10, 9, 561, 'tarjeta', '2020-03-31 15:45:32', 'nuevo');
+(10, 9, 561, 'tarjeta', '2020-03-31 15:45:32', 'nuevo'),
+(11, 9, 561, 'tarjeta', '2020-03-31 15:54:57', 'nuevo'),
+(12, 9, 561, 'tarjeta', '2020-03-31 15:56:11', 'nuevo'),
+(13, 9, 561, 'tarjeta', '2020-03-31 16:04:34', 'nuevo'),
+(14, 9, 561, 'tarjeta', '2020-03-31 16:06:43', 'nuevo'),
+(15, 9, 561, 'tarjeta', '2020-03-31 16:07:43', 'nuevo'),
+(16, 9, 671, 'efectivo', '2020-03-31 16:41:11', 'nuevo'),
+(17, 9, 1023.1, 'efectivo', '2020-03-31 18:36:59', 'nuevo'),
+(18, 9, 441, 'tarjeta', '2020-03-31 19:00:03', 'nuevo'),
+(19, 9, 441, 'efectivo', '2020-03-31 19:00:24', 'nuevo');
 
 -- --------------------------------------------------------
 
@@ -74,7 +83,24 @@ CREATE TABLE `order_products` (
 INSERT INTO `order_products` (`id`, `order_id`, `product_id`, `price`, `quantity`) VALUES
 (1, 1, 1, 200, 3),
 (2, 1, 2, 150, 4),
-(3, 2, 1, 200, 2);
+(3, 2, 1, 200, 2),
+(4, 13, 1, 200.5, 2),
+(5, 14, 1, 200.5, 2),
+(6, 15, 1, 200.5, 2),
+(7, 15, 14, 20, 8),
+(8, 16, 1, 200.5, 2),
+(9, 16, 14, 20, 8),
+(10, 16, 13, 55, 2),
+(11, 17, 1, 200.5, 2),
+(12, 17, 14, 20, 8),
+(13, 17, 15, 20, 1),
+(14, 17, 11, 55, 1),
+(15, 17, 6, 55, 4),
+(16, 17, 13, 55.7, 3),
+(17, 18, 1, 200.5, 2),
+(18, 18, 14, 20, 2),
+(19, 19, 1, 200.5, 2),
+(20, 19, 14, 20, 2);
 
 -- --------------------------------------------------------
 
@@ -97,15 +123,15 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `name`, `keyword`, `price`, `photo_url`, `stock`, `status`) VALUES
-(1, 'Focaccia', 'focacc', 200.5, 'https://www.gimmesomeoven.com/wp-content/uploads/2017/03/Rosemary-Focaccia-Recipe-1.jpg', 20, 'active'),
+(1, 'Focaccia', 'focacc', 200.5, 'https://www.gimmesomeoven.com/wp-content/uploads/2017/03/Rosemary-Focaccia-Recipe-1.jpg', 12, 'active'),
 (2, '44', 'vegipppe', 7737, 'http://nuevaurl45', 10, 'active'),
-(6, 'prueba', 'prueb', 55, 'http111', 15, 'active'),
+(6, 'prueba', 'prueb', 55, 'http111', 11, 'active'),
 (7, 'prueba2', 'prueb2', 55, 'http1112', 0, 'active'),
 (11, 'prueba3', 'prueb22', 55, 'http1112', 1, 'active'),
 (12, 'pizza', 'margarita', 55, 'http1112', 25, 'inactive'),
-(13, 'pizza napolitana', 'napo', 55, 'http1112', 30, 'active'),
-(14, 'papa', 'pap', 20, 'http', 40, 'active'),
-(15, 'papa2', 'pap2', 20, 'http', 40, 'active');
+(13, 'pizza napolitana', 'napo', 55.7, 'http1112', 25, 'active'),
+(14, 'papa', 'pap', 20, 'http', 20, 'active'),
+(15, 'papa2', 'pap2', 20, 'http', 39, 'active');
 
 -- --------------------------------------------------------
 
@@ -176,13 +202,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `order_products`
 --
 ALTER TABLE `order_products`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `products`

@@ -4,6 +4,12 @@ const Sequelize = require('sequelize');
 const sequelize = new Sequelize("delilah_db", "root", "", {
     host: "localhost",
     dialect: "mysql",
+    dialectOptions: {
+        // useUTC: false,
+        dateStrings: true,
+        // typeCast: true
+    },
+    timezone: '-03:00'
 });
 
 
@@ -377,6 +383,32 @@ const updateStock = (product) => {
     return query;
 }
 
+const getOrderProductsGeneral = (id) => { //devolver todos los datos? pasar como parametro y hacer una sola funcion
+    let query = sequelize.query("SELECT op.product_id, p.keyword, op.quantity FROM order_products op JOIN products p on p.id = op.product_id WHERE op.order_id = ?",
+        { replacements: [id], type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        // orders = data;
+        console.log(data);
+        return data;
+    });
+    return query;
+}
+
+const getAllOrders = () => { //agregar query dia y status
+ 
+    let query = sequelize.query("SELECT o.id, o.user_id, u.name AS user, u.address, o.total, o.payment_method, o.status, TIME(o.timestamp) AS time, DATE(o.timestamp) AS date FROM orders o JOIN users u on o.user_id = u.id ORDER BY o.id DESC",
+        { type: sequelize.QueryTypes.SELECT }
+    ).then(async (orders) => {
+
+        for (i = 0; i < orders.length; i++) {
+            let products = await getOrderProductsGeneral(orders[i].id);
+            orders[i].products = products;
+        }
+        return orders;
+    });
+    
+    return query;
+}
 
 
 
@@ -451,7 +483,8 @@ module.exports = {
     deleteUser: deleteUser,
     updateUser: updateUser,
     createOrder: createOrder,
-    updateStock: updateStock, //
+    updateStock: updateStock,
+    getAllOrders: getAllOrders, //
     encryptPass: encryptPass,
     checkUser: checkUser
 };

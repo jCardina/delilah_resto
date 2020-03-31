@@ -167,40 +167,7 @@ server.get('/me/orders/:id', validateUser, (request, response) => { //agregar us
 
 //---------------ADMIN ONLY---------------//
 
-server.get('/orders', validateUser, validateAdmin, (request, response) => {
-
-    let orders = [];
-
-    async function getOrders() {
-
-        await sequelize.query("SELECT * FROM orders ORDER BY id DESC",
-            { type: sequelize.QueryTypes.SELECT }
-        ).then(data => {
-            orders = data;
-            console.log(data);
-        });
-
-
-        for (i = 0; i < orders.length; i++) {
-
-            const order = orders[i];
-            const products = await sequelize.query("SELECT op.product_id, op.price, op.quantity FROM order_products op WHERE op.order_id = ?",
-                { replacements: [order.id], type: sequelize.QueryTypes.SELECT }
-            ).then(function (data) {
-
-                order.products = data;
-
-            });
-        }
-
-
-        response.json({ data: orders });
-    }
-
-    getOrders();
-
-
-});
+server.get('/orders', validateUser, validateAdmin, routes.getOrders);
 
 
 server.get('/orders/:id', validateUser, validateAdmin, (request, response) => {
