@@ -19,6 +19,13 @@ const postProduct = async (request, response) => {
         return;
     }
 
+    let checkTable = await queries.checkProduct(name, keyword, 0);
+
+    if (checkTable) {
+        response.status(409).json({ msg: "Product with the same " + checkTable + " already registered" }); //cambiar mensaje?
+        return;
+    }
+
     let post = await queries.createProduct(name, keyword, price, photo_url, stock); //validar que esten todos los datos y que no exista otro activo
     let newProduct = await queries.getOneProduct(post[0]);
     console.log(post);
@@ -35,29 +42,58 @@ const getProducts = async (request, response) => {
 
 }
 
+//agregar status 200 a las respuestas?
 
-const getProductById = async (request, response) => { //hace falta? agregar 404
+const getProductById = async (request, response) => {
     const id = request.params.id;
 
     let data = await queries.getOneProduct(id, request.admin);
-    response.json({ data: data });
+
+    if (!data) {
+        response.status(404).json({ msg: "Product not found" });
+    } else {
+        response.json({ data: data });
+    }
 
 }
 
-const patchProductById = async (request, response) => { //204 para put? //validar productos repetidos
+const patchProductById = async (request, response) => {
     const id = request.params.id;
     let { name, keyword, price, photo_url, stock } = request.body;
 
+    if (name == undefined && keyword == undefined && price == undefined && photo_url == undefined && stock == undefined) {
+
+        response.status(400).send();
+        return;
+    }
+
+    let checkTable = await queries.checkProduct(name, keyword, id);
+
+    if (checkTable) {
+        response.status(409).json({ msg: "Product with the same " + checkTable + " already registered" }); //cambiar mensaje?
+        return;
+    }
+
+    // console.log(typeof(name));
+    // if (name.length < 3) {
+    //     console.log("corto");
+    // }
+
     let update = await queries.updateProduct(id, name, keyword, price, photo_url, stock);
+
     let updatedData = await queries.getOneProduct(id);
 
-    response.json({ data: updatedData }); //cambiar status code
+    if (!updatedData) {
+        response.status(404).json({ msg: "Product not found" });
+    } else {
+        response.json({ data: updatedData }); //cambiar status code?
+    }
 
 }
 
 const deleteProductById = async (request, response) => {
     const id = request.params.id;
-    //agregar borrado logico
+    //agregar borrado logico con getorders
     let data = await queries.deleteProduct(id);
 
     if (data.affectedRows == 0) {
@@ -172,7 +208,12 @@ const getUserById = async (request, response) => {
     const id = request.params.id;
 
     let data = await queries.getOneUser(id);
-    response.json({ data: data });
+
+    if (!data) {
+        response.status(404).json({ msg: "User not found" });
+    } else {
+        response.json({ data: data });
+    }
 
 }
 
@@ -193,7 +234,12 @@ const deleteUserById = async (request, response) => {
 
 const getSameUser = async (request, response) => {
     let data = await queries.getOneUser(request.userId);
-    response.json({ data: data });
+
+    if (!data) {
+        response.status(404).json({ msg: "User not found" });
+    } else {
+        response.json({ data: data }); //cambiar status code?
+    }
 
 }
 
@@ -202,6 +248,12 @@ const patchSameUser = async (request, response) => {
 
     const id = request.userId;
     let { name, username, email, address, phone_number, password } = request.body;
+
+    if (name == undefined && username == undefined && email == undefined && address == undefined && phone_number == undefined && password == undefined) {
+
+        response.status(400).send();
+        return;
+    }
 
     if (username != undefined || email != undefined) {
 
@@ -220,10 +272,16 @@ const patchSameUser = async (request, response) => {
 
     let update = await queries.updateUser(id, name, username, email, address, phone_number, password);
 
-    let updatedInfo = await queries.getOneUser(id);
+    let updatedData = await queries.getOneUser(id);
     // console.log(updatedInfo);
 
-    response.json({ data: updatedInfo });
+    if (!updatedData) {
+        response.status(404).json({ msg: "User not found" });
+    } else {
+        response.json({ data: updatedData }); //cambiar status code?
+    }
+
+
 
 }
 
@@ -246,12 +304,64 @@ const deleteSameUser = async (request, response) => {
 
 
 
-
-
-
-
-
 //ORDERS------------------------------
+
+const postOrder = async (request, response) => {
+
+    const userId = request.userId;
+    let { products, payment_method } = request.body;
+    let total = 0;
+
+    for (i = 0; i < products.length; i++) {
+
+        let product = await queries.getOneProduct(products[i].id);
+
+        if (!product) {
+            response.status(404).json({ msg: "Product not found or unavailable, product_id: " + products[i].id });
+            return;
+        }
+
+        if (products[i].quantity > product.stock) {
+            response.status(409).json({ msg: "Not enough items in stock, product_id: " + product.id });
+            return;
+        }
+
+        products[i].price = product.price;
+        products[i].stock = product.stock;
+
+
+        let partial = product.price * products[i].quantity;
+        total += partial;
+        console.log(partial);
+    }
+
+    console.log(total);
+
+    for (i = 0; i < products.length; i++) {
+
+        await queries.updateStock(products[i]);
+    }
+
+    await queries.createOrder(userId, products, total, payment_method);
+    //query insert pedido
+
+    //---otro for insert producto_pedido y restar stock
+
+
+
+
+    // orders.push(newOrder);
+    // console.log(orders);
+
+    // response.statusCode = 201;
+    // response.json(newOrder);
+}
+
+
+
+
+
+
 
 module.exports = {
     postProduct: postProduct,
@@ -267,5 +377,6 @@ module.exports = {
     deleteUserById: deleteUserById,
     getSameUser: getSameUser,
     patchSameUser: patchSameUser,
-    deleteSameUser: deleteSameUser
+    deleteSameUser: deleteSameUser,
+    postOrder: postOrder
 };

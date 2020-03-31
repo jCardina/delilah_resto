@@ -12,6 +12,8 @@ const sequelize = new Sequelize("delilah_db", "root", "", {
 
 //pasar functions mas abajo a const--------!!!!
 
+//Products------------------
+
 const createProduct = (name, keyword, price, photo_url, stock) => {
 
     const query = sequelize.query("INSERT INTO products (name, keyword, price, photo_url, stock, status) VALUES(?, ?, ?, ?, ?, ?)",
@@ -67,7 +69,12 @@ const getOneProduct = (id, admin) => {
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
     ).then(data => {
 
-        return data[0];
+        if (data.length > 0) {
+            return data[0];
+
+        } else {
+            return false;
+        }
     });
     return query;
 }
@@ -159,7 +166,31 @@ const deleteProduct = (id) => {
     return query;
 }
 
-//cambiar get por select en nombres de funciones?
+const checkProduct = (name, keyword, id) => {
+
+    let productMatch = sequelize.query("SELECT name, keyword FROM products WHERE (name = ? OR keyword = ?) AND id != ?",
+        { replacements: [name, keyword, id], type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        console.log(data);
+        if (data.length > 0) { //revisar
+
+            if (name == data[0].name) {
+
+                return "name";
+
+            } else {
+                return "keyword";
+            }
+
+        } else {
+            return false;
+        }
+    });
+    return productMatch;
+}
+
+
+//Users---------------------
 
 const getLogData = (user, password) => {
 
@@ -308,6 +339,44 @@ const updateUser = (id, name, username, email, address, phone, password) => {
 }
 
 
+const createOrder = (user, products, total, paymentMethod) => {
+
+    console.log(products);
+
+    const order = sequelize.query("INSERT INTO orders (user_id, total, payment_method) VALUES(?, ?, ?)",
+        { replacements: [user, total, paymentMethod] }
+    ).then(data => {
+        console.log(data);
+
+        for (i = 0; i < products.length; i++) {
+
+            sequelize.query("INSERT INTO order_products (order_id, product_id, price, quantity) VALUES(?, ?, ?, ?)",
+                { replacements: [data[0], products[i].id, products[i].price, products[i].quantity] }
+            ).then(info => {
+                console.log(info);
+                return info;
+            });
+        }
+
+    });
+    // console.log(query);
+    return order;
+}
+
+const updateStock = (product) => {
+
+    let updatedStock = product.stock - product.quantity;
+
+    const query = sequelize.query("UPDATE products SET stock = ? WHERE id = ?",
+        { replacements: [updatedStock, product.id] }
+    ).then(info => {
+        console.log(info);
+        return info;
+    });
+
+    return query;
+}
+
 
 
 
@@ -374,12 +443,15 @@ module.exports = {
     getOneProduct: getOneProduct,
     updateProduct: updateProduct,
     deleteProduct: deleteProduct,
+    checkProduct: checkProduct,
     getLogData: getLogData,
     createUser: createUser,
     getAllUsers: getAllUsers,
     getOneUser: getOneUser,
     deleteUser: deleteUser,
-    updateUser: updateUser, //
+    updateUser: updateUser,
+    createOrder: createOrder,
+    updateStock: updateStock, //
     encryptPass: encryptPass,
     checkUser: checkUser
 };

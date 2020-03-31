@@ -2,7 +2,6 @@ const express = require('express');
 const server = express();
 
 const bodyParser = require('body-parser');
-const moment = require('moment'); //sacar?
 const cors = require('cors');
 
 const routes = require('./routes.js');
@@ -10,9 +9,6 @@ const middlewares = require('./middlewares.js');
 
 const validateUser = middlewares.validateUser;
 const validateAdmin = middlewares.validateAdmin;
-
-const date = moment().format("YYYY-MM-DD"); //sacar y usar solo timestamp now()?
-const time = moment().format("HH:mm:ss");
 
 server.use(cors());
 server.use(bodyParser.json());
@@ -40,12 +36,9 @@ server.listen(3000, () => {
 // });
 
 
-//agregar precio a pedido_productos y sacar total depedidos(se calcula en backend), borrado logico de productos y usuarios
+//borrado logico de productos y usuarios
 
 //agregar respuestas de errores y codigos exito/error y middlewares (token y same user)
-
-//sacar request params de usuarios que no hagan falta en este archivo porque estan en los middlewares
-
 
 
 //---------------------------------PRODUCTS---------------------------------//
@@ -75,7 +68,6 @@ server.post('/login', routes.postLogin);
 //---------------SAME USER ONLY---------------//
 //agregar error para cuando las keys no estan bien escritas o faltan o no tienen contenido y que los numeros sean numeros y los string
 
-//revisar que la respuesta de update este actualizada
 server.get('/users/me', validateUser, routes.getSameUser);
 
 server.patch('/users/me', validateUser, routes.patchSameUser);
@@ -93,46 +85,15 @@ server.get('/users/:id', validateUser, validateAdmin, routes.getUserById);
 server.delete('/users/:id', validateUser, validateAdmin, routes.deleteUserById);
 
 
-// agregar data envelope y revisar que si devuelve un objeto no este en array
-//agregar validaciones de repeticion de usuario y producto
-
 //sql NOW para hora y fecha sacar moment?
 
-
-
-//agregar try catch a todos los endpoints y error server 500
-
-//revisar que los validate same user sean en endpoints donde el path tenga el id del usuario y no del pedido o ninguno
+//agregar try catch a todos los endpoint
 
 //---------------------------------ORDERS---------------------------------//
 
 //---------------SAME USER ONLY---------------//
 
-server.post('/orders', validateUser, (request, response) => {
-
-    let { products, total, paymentMethod } = request.body;
-    let userId = request.userId;
-
-    let lastAssignedId = orders[orders.length - 1].orderId;
-    let newID = lastAssignedId + 1;
-
-    let newOrder = {
-        orderId: newID,
-        products: products,
-        total: total,
-        userId: userId,
-        paymentMethod: paymentMethod,
-        timeStamp: time,
-        date: date,
-        status: "nuevo"
-    };
-
-    orders.push(newOrder);
-    console.log(orders);
-
-    response.statusCode = 201;
-    response.json(newOrder);
-});
+server.post('/orders', validateUser, routes.postOrder);
 
 server.get('/me/orders', validateUser, (request, response) => { //agregar users y ver si funcionas
     // const id = request.params.id;

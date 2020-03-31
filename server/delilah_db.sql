@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 30, 2020 at 05:12 PM
+-- Generation Time: Mar 31, 2020 at 05:49 PM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.2
 
@@ -33,19 +33,25 @@ CREATE TABLE `orders` (
   `user_id` int(10) UNSIGNED NOT NULL,
   `total` double UNSIGNED NOT NULL,
   `payment_method` varchar(20) NOT NULL,
-  `time` time NOT NULL,
-  `date` date NOT NULL,
-  `status` varchar(20) NOT NULL
+  `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
+  `status` varchar(20) NOT NULL DEFAULT 'nuevo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`id`, `user_id`, `total`, `payment_method`, `time`, `date`, `status`) VALUES
-(1, 2, 350.6, 'tarjeta', '16:16:28', '2020-03-11', 'nuevo'),
-(2, 2, 500.5, 'efectivo', '13:20:45', '2020-03-02', 'confirmado'),
-(3, 6, 300, 'efectivo', '01:05:18', '2020-03-04', 'nuevo');
+INSERT INTO `orders` (`id`, `user_id`, `total`, `payment_method`, `timestamp`, `status`) VALUES
+(1, 2, 350.6, 'tarjeta', '2020-03-31 19:16:28', 'nuevo'),
+(2, 2, 500.5, 'efectivo', '2020-03-31 16:20:45', 'confirmado'),
+(3, 6, 300, 'efectivo', '2020-03-31 04:05:18', 'nuevo'),
+(4, 9, 460, 'tarjeta', '2020-03-31 03:00:00', 'nuevo'),
+(5, 9, 460, 'tarjeta', '2020-03-31 18:20:05', 'nuevo'),
+(6, 9, 460, 'tarjeta', '2020-03-31 18:26:09', 'nuevo'),
+(7, 9, 460, 'tarjeta', '2020-03-31 15:35:55', 'nuevo'),
+(8, 9, 460, 'tarjeta', '2020-03-31 15:37:26', 'nuevo'),
+(9, 9, 561, 'tarjeta', '2020-03-31 15:43:42', 'nuevo'),
+(10, 9, 561, 'tarjeta', '2020-03-31 15:45:32', 'nuevo');
 
 -- --------------------------------------------------------
 
@@ -80,9 +86,9 @@ CREATE TABLE `products` (
   `id` int(10) UNSIGNED NOT NULL,
   `name` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
   `keyword` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
-  `price` int(10) UNSIGNED NOT NULL,
+  `price` double UNSIGNED NOT NULL,
   `photo_url` varchar(300) COLLATE utf8_unicode_ci NOT NULL,
-  `stock` int(11) NOT NULL,
+  `stock` int(11) UNSIGNED NOT NULL,
   `status` varchar(60) COLLATE utf8_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -91,13 +97,15 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `name`, `keyword`, `price`, `photo_url`, `stock`, `status`) VALUES
-(1, 'Focaccia', 'focacc', 200, 'https://www.gimmesomeoven.com/wp-content/uploads/2017/03/Rosemary-Focaccia-Recipe-1.jpg', 20, 'active'),
-(2, 'hamburgesa vegetariana53', 'veeegieeee3', 7737, 'http://nuevaurl45', 10, 'active'),
+(1, 'Focaccia', 'focacc', 200.5, 'https://www.gimmesomeoven.com/wp-content/uploads/2017/03/Rosemary-Focaccia-Recipe-1.jpg', 20, 'active'),
+(2, '44', 'vegipppe', 7737, 'http://nuevaurl45', 10, 'active'),
 (6, 'prueba', 'prueb', 55, 'http111', 15, 'active'),
 (7, 'prueba2', 'prueb2', 55, 'http1112', 0, 'active'),
 (11, 'prueba3', 'prueb22', 55, 'http1112', 1, 'active'),
 (12, 'pizza', 'margarita', 55, 'http1112', 25, 'inactive'),
-(13, 'pizza napolitana', 'napo', 55, 'http1112', 30, 'active');
+(13, 'pizza napolitana', 'napo', 55, 'http1112', 30, 'active'),
+(14, 'papa', 'pap', 20, 'http', 40, 'active'),
+(15, 'papa2', 'pap2', 20, 'http', 40, 'active');
 
 -- --------------------------------------------------------
 
@@ -123,10 +131,9 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `name`, `username`, `email`, `address`, `phone_number`, `password`, `admin`) VALUES
 (1, 'Pablo Lopez', 'pabloLop', 'pablolopez@gmail.com', NULL, NULL, '3aade067651271a4bc664428236a72de', 1),
 (2, 'Maria Gonzalez', 'marGon', 'mariagonzalez@gmail.com', 'Peru 5870', '34235246', '05ca84ed54a1be215a12832ce4ad454f', 0),
-(3, 'Carla Gomez', 'car_goo', 'carlagomez@gmal.com', NULL, NULL, 'd596618d8e4c569c277096157bf8ecb9', 1),
+(3, 'carla gomez', 'car_goo', 'carlagomez@gmal.com', NULL, NULL, 'd596618d8e4c569c277096157bf8ecb9', 1),
 (6, 'Federico Perez', 'fedPe', 'federicoperez@hotmail.com', 'Prudan 3429', '44664699', '123', 0),
-(7, 'patricio martinez', 'martinpat', 'martinPREUBA663ez@gmail.com', 'peru Beach 233', '32224', '072c80bbb0dda1377b2c212b2192483c', 0),
-(8, 'Pablo prueba', 'papa', 'pablo@gmal.com', 'weefe', '0', '202cb962ac59075b964b07152d234b70', 0),
+(7, 'patricio mart', 'martinpat', 'martinPREUBA663ez@gmail.com', 'peru Beach 233', '32224', '072c80bbb0dda1377b2c212b2192483c', 0),
 (9, 'Pablo prueba', 'papa2', 'pablo2@gmal.com', 'weefe', '243524646', '81dc9bdb52d04dc20036dbd8313ed055', 0),
 (12, 'Pablo prueba', 'papa9n', 'pablo235ee@gmal.com', 'heteheh', '231624643', 'e10adc3949ba59abbe56e057f20f883e', 0);
 
@@ -169,7 +176,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `order_products`
@@ -181,7 +188,7 @@ ALTER TABLE `order_products`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `users`
