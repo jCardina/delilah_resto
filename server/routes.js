@@ -312,7 +312,7 @@ const postOrder = async (request, response) => {
     let { products, payment_method } = request.body;
     let total = 0;
 
-    if (typeof(products) != "object" || products.length == undefined || products.length < 1) {
+    if (typeof (products) != "object" || products.length == undefined || products.length < 1) {
         response.status(400).json({ msg: "List of products missing" });
         return;
     }
@@ -326,7 +326,7 @@ const postOrder = async (request, response) => {
 
         let quantity = products[i].quantity;
 
-        if (typeof(quantity) != "number" || parseInt(quantity) < 1) {
+        if (typeof (quantity) != "number" || parseInt(quantity) < 1) {
             response.status(400).json({ msg: "Invalid quantity" });
             return;
         }
@@ -342,7 +342,7 @@ const postOrder = async (request, response) => {
             response.status(409).json({ msg: "Not enough items in stock, product_id: " + product.id });
             return;
         }
-        
+
 
         products[i].price = product.price;
         products[i].stock = product.stock;
@@ -360,41 +360,62 @@ const postOrder = async (request, response) => {
         await queries.updateStock(products[i]);
     }
 
-    await queries.createOrder(userId, products, total, payment_method);
-    
+    let newOrder = await queries.createOrder(userId, products, total, payment_method);
+    // console.log(newOrder);
+    response.status(201).json({ order_id: newOrder });
 
-//-----------------------
-
-    // seguir respuesta!!!!
-
-    // orders.push(newOrder);
-    // console.log(orders);
-
-    // response.statusCode = 201;
-    // response.json(newOrder);
 }
 
 const getOrders = async (request, response) => {
 
-    let orders = await queries.getAllOrders();
-
-    // console.log(orders);
-
-        // for (i = 0; i < orders.length; i++) {
-
-        //     const order = orders[i];
-        //     const products = await sequelize.query("SELECT op.product_id, op.price, op.quantity FROM order_products op WHERE op.order_id = ?",
-        //         { replacements: [order.id], type: sequelize.QueryTypes.SELECT }
-        //     ).then(function (data) {
-
-        //         order.products = data;
-
-        //     });
-        // }
+    let { limit, offset, date, status } = request.query;
+    // console.log(isNaN(limit));
 
 
-        response.json({ data: orders });
+    if (limit != undefined && !isNaN(limit)) {
 
+        limit = parseInt(limit);
+        // console.log(limit);
+
+    } else {
+
+        limit = 30;
+    }
+
+    if (offset != undefined && !isNaN(offset)) {
+
+        offset = parseInt(offset);
+
+    } else {
+
+        offset = 0;
+    }
+
+    const pattern = new RegExp("^[0-9]{4}[-][0-9]{2}[-][0-9]{2}$");
+    const checkDate = pattern.test(date);
+
+    if (!checkDate) {
+        date = false;
+    }
+
+    if (status != "nuevo" && status != "confirmado" && status != "preparando" && status != "enviando" && status != "entregado" && status != "cancelado") {
+        status = false;
+    }
+
+    let orders = await queries.getAllOrders(limit, offset, date, status);
+
+    response.json({ data: orders });
+
+}
+
+const getOrderById = async (request, response) => {
+
+    const id = request.params.id;
+
+    let order = await queries.getOneOrder(id);
+
+    response.json({ data: order });
+    //agregar 404
 }
 
 
@@ -417,5 +438,6 @@ module.exports = {
     patchSameUser: patchSameUser,
     deleteSameUser: deleteSameUser,
     postOrder: postOrder,
-    getOrders: getOrders
+    getOrders: getOrders,
+    getOrderById: getOrderById
 };

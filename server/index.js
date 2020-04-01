@@ -95,7 +95,7 @@ server.delete('/users/:id', validateUser, validateAdmin, routes.deleteUserById);
 
 server.post('/orders', validateUser, routes.postOrder);
 
-server.get('/me/orders', validateUser, (request, response) => { //agregar users y ver si funcionas
+server.get('/users/me/orders', validateUser, (request, response) => { //agregar users y ver si funcionas
     // const id = request.params.id;
     const id = request.userId;
 
@@ -132,7 +132,7 @@ server.get('/me/orders', validateUser, (request, response) => { //agregar users 
 
 });
 
-server.get('/me/orders/:id', validateUser, (request, response) => { //agregar users y ver si funcionas
+server.get('/users/me/orders/:id', validateUser, (request, response) => { //agregar users y ver si funcionas
     const orderId = request.params.id;
     const userId = request.userId;
 
@@ -169,42 +169,11 @@ server.get('/me/orders/:id', validateUser, (request, response) => { //agregar us
 
 server.get('/orders', validateUser, validateAdmin, routes.getOrders);
 
+server.get('/orders/:id', validateUser, validateAdmin, routes.getOrderById);
 
-server.get('/orders/:id', validateUser, validateAdmin, (request, response) => {
+server.patch('/orders/:id', validateUser, validateAdmin, (request, response) => {
     const id = request.params.id;
-    // const reqUserId = request.userId;
-
-    async function getOrder() {
-
-        let order = {};
-
-        await sequelize.query("SELECT * FROM orders WHERE id =?",
-            { replacements: [id], type: sequelize.QueryTypes.SELECT }
-        ).then(data => {
-            order = data[0];
-            console.log(data);
-        });
-
-
-        const products = await sequelize.query("SELECT op.product_id, op.price, op.quantity FROM order_products op WHERE op.order_id = ?",
-            { replacements: [id], type: sequelize.QueryTypes.SELECT }
-        ).then(function (data) {
-
-            order.products = data;
-
-        });
-
-
-        response.json({ data: order });
-    }
-
-    getOrder();
-
-});
-
-server.put('/orders/:id', validateUser, validateAdmin, (request, response) => {
-    const id = request.params.id;
-    const status = request.query;
+    const status = request.body;
 
     orders.forEach(element => {
         if (element.orderId == id) {
@@ -217,8 +186,6 @@ server.put('/orders/:id', validateUser, validateAdmin, (request, response) => {
 });
 
 // agregar delete orders
-
-
 
 
 
@@ -239,16 +206,6 @@ let users = [
         userName: "marPer",
         password: "passWoo234",
         admin: false
-    }
-
-];
-
-let products = [
-    {
-        photoUrl: "https://www.gimmesomeoven.com/wp-content/uploads/2017/03/Rosemary-Focaccia-Recipe-1.jpg"
-    },
-    {
-        photoUrl: "https://storage.googleapis.com/gen-atmedia/3/2019/05/a94cfde51967df5caf0f1641f53a5470df4421c1.jpeg"
     }
 
 ];

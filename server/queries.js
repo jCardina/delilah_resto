@@ -351,19 +351,19 @@ const createOrder = (user, products, total, paymentMethod) => {
 
     const order = sequelize.query("INSERT INTO orders (user_id, total, payment_method) VALUES(?, ?, ?)",
         { replacements: [user, total, paymentMethod] }
-    ).then(data => {
+    ).then( async (data) => {
         console.log(data);
 
         for (i = 0; i < products.length; i++) {
 
-            sequelize.query("INSERT INTO order_products (order_id, product_id, price, quantity) VALUES(?, ?, ?, ?)",
+            await sequelize.query("INSERT INTO order_products (order_id, product_id, price, quantity) VALUES(?, ?, ?, ?)",
                 { replacements: [data[0], products[i].id, products[i].price, products[i].quantity] }
             ).then(info => {
                 console.log(info);
                 return info;
             });
         }
-
+        return data[0];
     });
     // console.log(query);
     return order;
@@ -383,8 +383,17 @@ const updateStock = (product) => {
     return query;
 }
 
-const getOrderProductsGeneral = (id) => { //devolver todos los datos? pasar como parametro y hacer una sola funcion
-    let query = sequelize.query("SELECT op.product_id, p.keyword, op.quantity FROM order_products op JOIN products p on p.id = op.product_id WHERE op.order_id = ?",
+const getOrderProducts = (id, moreDetails) => {
+
+    let queryString = "SELECT op.product_id, p.keyword, op.quantity";
+
+    if (moreDetails) {
+        queryString += ", p.name AS product_name, op.price, p.photo_url, p.status";
+    }
+
+    queryString += " FROM order_products op JOIN products p on p.id = op.product_id WHERE op.order_id = ?";
+
+    let query = sequelize.query(queryString,
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
     ).then(data => {
         // orders = data;
@@ -394,19 +403,54 @@ const getOrderProductsGeneral = (id) => { //devolver todos los datos? pasar como
     return query;
 }
 
-const getAllOrders = () => { //agregar query dia y status
- 
-    let query = sequelize.query("SELECT o.id, o.user_id, u.name AS user, u.address, o.total, o.payment_method, o.status, TIME(o.timestamp) AS time, DATE(o.timestamp) AS date FROM orders o JOIN users u on o.user_id = u.id ORDER BY o.id DESC",
-        { type: sequelize.QueryTypes.SELECT }
+const getAllOrders = (limit, offset, date, status) => {
+
+    let queryString = "SELECT o.id, o.user_id, u.name AS name_lastname, u.address, o.total, o.payment_method, o.status, TIME(o.timestamp) AS time, DATE(o.timestamp) AS date FROM orders o JOIN users u on o.user_id = u.id";
+
+    let replace = [limit, offset];
+
+    if (date && !status) {
+        queryString += " WHERE DATE(timestamp) = ?";
+        replace.unshift(date);
+
+    } else if (date && status) {
+        queryString += " WHERE DATE(timestamp) = ? AND status = ?";
+        replace.unshift(date, status);
+
+    } else if (!date && status) {
+        queryString += " WHERE status = ?";
+        replace.unshift(status);
+    }
+
+    queryString += " ORDER BY o.id DESC LIMIT ? OFFSET ?";
+
+    let query = sequelize.query(queryString,
+        { replacements: replace, type: sequelize.QueryTypes.SELECT }
     ).then(async (orders) => {
 
         for (i = 0; i < orders.length; i++) {
-            let products = await getOrderProductsGeneral(orders[i].id);
+            let products = await getOrderProducts(orders[i].id, false);
             orders[i].products = products;
         }
         return orders;
     });
-    
+
+    return query;
+}
+
+
+const getOneOrder = (id) => {
+
+    let query = sequelize.query("SELECT o.id, o.user_id, u.name AS name_lastname, u.username, u.email, u.phone_number, u.status AS user_status, u.address, o.total, o.payment_method, o.status AS order_status, o.timestamp FROM orders o JOIN users u on o.user_id = u.id WHERE o.id = ?",
+        { replacements: [id], type: sequelize.QueryTypes.SELECT }
+    ).then(async (order) => {
+
+        let products = await getOrderProducts(order[0].id, true);
+        order[0].products = products;
+
+        return order[0];
+    });
+
     return query;
 }
 
@@ -484,7 +528,8 @@ module.exports = {
     updateUser: updateUser,
     createOrder: createOrder,
     updateStock: updateStock,
-    getAllOrders: getAllOrders, //
+    getAllOrders: getAllOrders,
+    getOneOrder: getOneOrder, //
     encryptPass: encryptPass,
     checkUser: checkUser
 };
