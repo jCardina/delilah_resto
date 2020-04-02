@@ -10,7 +10,7 @@ const checkUser = queries.checkUser;
 
 //PRODUCTS------------------------------
 
-const postProduct = async (request, response) => {
+const postProduct = async (request, response, next) => {
     let { name, keyword, price, photo_url, stock } = request.body;
 
     if (name == undefined || keyword == undefined || price == undefined || photo_url == undefined || stock == undefined) {
@@ -19,18 +19,24 @@ const postProduct = async (request, response) => {
         return;
     }
 
-    let checkTable = await queries.checkProduct(name, keyword, 0);
+    try {
 
-    if (checkTable) {
-        response.status(409).json({ msg: "Product with the same " + checkTable + " already registered" }); //cambiar mensaje?
-        return;
+        let checkTable = await queries.checkProduct(name, keyword, 0);
+
+        if (checkTable) {
+            response.status(409).json({ msg: "Product with the same " + checkTable + " already registered" }); //cambiar mensaje?
+            return;
+        }
+
+        let post = await queries.createProduct(name, keyword, price, photo_url, stock); //validar que esten todos los datos y que no exista otro activo
+        let newProduct = await queries.getOneProduct(post[0]);
+        console.log(post);
+
+        response.status(201).json({ data: newProduct }); //que datos devolver?
+
+    } catch (error) {
+        next(error);
     }
-
-    let post = await queries.createProduct(name, keyword, price, photo_url, stock); //validar que esten todos los datos y que no exista otro activo
-    let newProduct = await queries.getOneProduct(post[0]);
-    console.log(post);
-
-    response.status(201).json({ data: newProduct }); //que datos devolver?
 }
 
 
@@ -45,7 +51,7 @@ const getProducts = async (request, response, next) => {
 
 }
 
-//agregar status 200 a las respuestas?
+
 
 const getProductById = async (request, response, next) => {
     const id = request.params.id;
@@ -64,7 +70,7 @@ const getProductById = async (request, response, next) => {
 
 }
 
-const patchProductById = async (request, response) => {
+const patchProductById = async (request, response, next) => {
     const id = request.params.id;
     let { name, keyword, price, photo_url, stock } = request.body;
 
@@ -74,26 +80,31 @@ const patchProductById = async (request, response) => {
         return;
     }
 
-    let checkTable = await queries.checkProduct(name, keyword, id);
+    try {
 
-    if (checkTable) {
-        response.status(409).json({ msg: "Product with the same " + checkTable + " already registered" }); //cambiar mensaje?
-        return;
-    }
+        let checkTable = await queries.checkProduct(name, keyword, id);
 
-    // console.log(typeof(name));
-    // if (name.length < 3) {
-    //     console.log("corto");
-    // }
+        if (checkTable) {
+            response.status(409).json({ msg: "Product with the same " + checkTable + " already registered" }); //cambiar mensaje?
+            return;
+        }
 
-    let update = await queries.updateProduct(id, name, keyword, price, photo_url, stock);
+        // console.log(typeof(name));
+        // if (name.length < 3) {
+        //     console.log("corto");
+        // }
 
-    let updatedData = await queries.getOneProduct(id);
+        let update = await queries.updateProduct(id, name, keyword, price, photo_url, stock);
 
-    if (!updatedData) {
-        response.status(404).json({ msg: "Product not found" });
-    } else {
-        response.json({ data: updatedData }); //cambiar status code?
+        let updatedData = await queries.getOneProduct(id);
+
+        if (!updatedData) {
+            response.status(404).json({ msg: "Product not found" });
+        } else {
+            response.json({ data: updatedData }); //cambiar status code?
+        }
+    } catch (error) {
+        next(error);
     }
 
 }
@@ -117,7 +128,7 @@ const deleteProductById = async (request, response, next) => {
 
 //LOG IN------------------------------
 
-const postLogin = async (request, response) => { //revisar
+const postLogin = async (request, response, next) => { //revisar
 
     // console.log(request.body);
     let { user, password } = request.body;
@@ -127,11 +138,17 @@ const postLogin = async (request, response) => { //revisar
         return;
     }
 
-    password = await encryptPass(password);
+    let logData;
 
-    console.log(password);
+    try {
+        password = await encryptPass(password);
 
-    let logData = await queries.getLogData(user, password);
+        console.log(password);
+
+        logData = await queries.getLogData(user, password);
+    } catch (error) {
+        return next(error);
+    }
 
     try {
 
@@ -149,7 +166,7 @@ const postLogin = async (request, response) => { //revisar
 
 //USERS------------------------------
 
-const postUser = async (request, response) => {
+const postUser = async (request, response, next) => {
     let { name, username, email, address, phone_number, password } = request.body;
 
     if (name == undefined || username == undefined || email == undefined || address == undefined || phone_number == undefined || password == undefined) {
@@ -159,22 +176,25 @@ const postUser = async (request, response) => {
     }
 
     //chequear valores comillas vacias y minimo characteres junto con tipo de info en updates tambien
+    try {
+        let checkUpUser = await checkUser(username, email, 0);
+        console.log(checkUpUser);
 
-    let checkUpUser = await checkUser(username, email, 0);
-    console.log(checkUpUser);
+        if (checkUpUser) {
+            response.status(409).json({ msg: checkUpUser + " already registered" }); //cambiar mensaje?
+            return;
+        }
 
-    if (checkUpUser) {
-        response.status(409).json({ msg: checkUpUser + " already registered" }); //cambiar mensaje?
-        return;
+        password = await encryptPass(password);
+
+        let admin = 0;
+
+        let create = await queries.createUser(name, username, email, password, admin, address, phone_number);
+
+        response.status(201).json({ msg: "User created" });
+    } catch (error) {
+        next(error);
     }
-
-    password = await encryptPass(password);
-
-    let admin = 0;
-
-    let create = await queries.createUser(name, username, email, password, admin, address, phone_number);
-
-    response.status(201).json({ msg: "User created" });
 }
 
 

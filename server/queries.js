@@ -5,9 +5,7 @@ const sequelize = new Sequelize("delilah_db", "root", "", {
     host: "localhost",
     dialect: "mysql",
     dialectOptions: {
-        // useUTC: false,
         dateStrings: true,
-        // typeCast: true
     },
     timezone: '-03:00'
 });
@@ -15,8 +13,6 @@ const sequelize = new Sequelize("delilah_db", "root", "", {
 
 
 
-
-//pasar functions mas abajo a const--------!!!!
 
 //Products------------------
 
