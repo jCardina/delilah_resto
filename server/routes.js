@@ -414,8 +414,34 @@ const getOrderById = async (request, response) => {
 
     let order = await queries.getOneOrder(id);
 
-    response.json({ data: order });
-    //agregar 404
+    // response.json({ data: order });
+    
+    if (!order) {
+        response.status(404).json({ msg: "Order not found" });
+    } else {
+        response.json({ data: order });
+    }
+}
+
+const patchOrderById = async  (request, response) => {
+    const id = request.params.id;
+    const { status } = request.body;
+
+    if (status != "nuevo" && status != "confirmado" && status != "preparando" && status != "enviando" && status != "entregado" && status != "cancelado") {
+        response.status(400).json({ msg: "Ivalid order status"});
+        return;
+    }
+
+    let update = await queries.updateOrderStatus(id, status);
+    // console.log(update);
+    let updatedOrder = await queries.getOneOrder(id);
+
+    if (!updatedOrder) {
+        response.status(404).json({ msg: "Order not found" });
+    } else {
+        response.json({ order_id: id, new_status: status });
+    }
+
 }
 
 
@@ -439,5 +465,6 @@ module.exports = {
     deleteSameUser: deleteSameUser,
     postOrder: postOrder,
     getOrders: getOrders,
-    getOrderById: getOrderById
+    getOrderById: getOrderById,
+    patchOrderById: patchOrderById
 };

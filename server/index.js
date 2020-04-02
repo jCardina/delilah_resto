@@ -171,19 +171,7 @@ server.get('/orders', validateUser, validateAdmin, routes.getOrders);
 
 server.get('/orders/:id', validateUser, validateAdmin, routes.getOrderById);
 
-server.patch('/orders/:id', validateUser, validateAdmin, (request, response) => {
-    const id = request.params.id;
-    const status = request.body;
-
-    orders.forEach(element => {
-        if (element.orderId == id) {
-            element.status = status.status;
-            console.log(orders);
-            response.json(element);
-        }
-    });
-
-});
+server.patch('/orders/:id', validateUser, validateAdmin, routes.patchOrderById);
 
 // agregar delete orders
 

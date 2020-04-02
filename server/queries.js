@@ -75,12 +75,13 @@ const getOneProduct = (id, admin) => {
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
     ).then(data => {
 
-        if (data.length > 0) {
-            return data[0];
+        // if (data.length > 0) {
+        //     return data[0];
 
-        } else {
-            return false;
-        }
+        // } else {
+        //     return false;
+        // }
+        return data[0];
     });
     return query;
 }
@@ -239,6 +240,7 @@ const getOneUser = (id) => {
     const query = sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
     ).then(data => {
+        // console.log(data[0]);
         return data[0];
     });
     return query;
@@ -351,7 +353,7 @@ const createOrder = (user, products, total, paymentMethod) => {
 
     const order = sequelize.query("INSERT INTO orders (user_id, total, payment_method) VALUES(?, ?, ?)",
         { replacements: [user, total, paymentMethod] }
-    ).then( async (data) => {
+    ).then(async (data) => {
         console.log(data);
 
         for (i = 0; i < products.length; i++) {
@@ -403,22 +405,42 @@ const getOrderProducts = (id, moreDetails) => {
     return query;
 }
 
+const getOrderUserData = (id, moreDetails) => {
+
+    let queryString = "SELECT u.id AS user_id, u.name AS name_lastname";
+
+    if (moreDetails) {
+        queryString += ", u.username, u.email, u.phone_number, u.status";
+    }
+
+    queryString += " FROM users u JOIN orders o on u.id = o.user_id WHERE o.id = ?";
+
+    let query = sequelize.query(queryString,
+        { replacements: [id], type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        // orders = data;
+        console.log(data);
+        return data[0];
+    });
+    return query;
+}
+
 const getAllOrders = (limit, offset, date, status) => {
 
-    let queryString = "SELECT o.id, o.user_id, u.name AS name_lastname, u.address, o.total, o.payment_method, o.status, TIME(o.timestamp) AS time, DATE(o.timestamp) AS date FROM orders o JOIN users u on o.user_id = u.id";
+    let queryString = "SELECT o.id, u.address, o.total, o.payment_method, o.status, TIME(o.timestamp) AS time, DATE(o.timestamp) AS date FROM orders o JOIN users u on o.user_id = u.id";
 
     let replace = [limit, offset];
 
     if (date && !status) {
-        queryString += " WHERE DATE(timestamp) = ?";
+        queryString += " WHERE DATE(o.timestamp) = ?";
         replace.unshift(date);
 
     } else if (date && status) {
-        queryString += " WHERE DATE(timestamp) = ? AND status = ?";
+        queryString += " WHERE DATE(o.timestamp) = ? AND o.status = ?";
         replace.unshift(date, status);
 
     } else if (!date && status) {
-        queryString += " WHERE status = ?";
+        queryString += " WHERE o.status = ?";
         replace.unshift(status);
     }
 
@@ -429,6 +451,10 @@ const getAllOrders = (limit, offset, date, status) => {
     ).then(async (orders) => {
 
         for (i = 0; i < orders.length; i++) {
+
+            let user = await getOrderUserData(orders[i].id, false);
+            orders[i].user = user;
+
             let products = await getOrderProducts(orders[i].id, false);
             orders[i].products = products;
         }
@@ -441,16 +467,35 @@ const getAllOrders = (limit, offset, date, status) => {
 
 const getOneOrder = (id) => {
 
-    let query = sequelize.query("SELECT o.id, o.user_id, u.name AS name_lastname, u.username, u.email, u.phone_number, u.status AS user_status, u.address, o.total, o.payment_method, o.status AS order_status, o.timestamp FROM orders o JOIN users u on o.user_id = u.id WHERE o.id = ?",
+    let query = sequelize.query("SELECT o.id, u.address, o.total, o.payment_method, o.status, o.timestamp FROM orders o JOIN users u on o.user_id = u.id WHERE o.id = ?",
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
     ).then(async (order) => {
+        try {
+            let user = await getOrderUserData(id, true)
+            order[0].user = user;
 
-        let products = await getOrderProducts(order[0].id, true);
-        order[0].products = products;
+            let products = await getOrderProducts(id, true);
+            order[0].products = products;
 
-        return order[0];
+            return order[0];
+
+        } catch {
+            return false;
+        }
+
     });
 
+    return query;
+}
+
+const updateOrderStatus = (id, newStatus) => {
+
+    let query = sequelize.query("UPDATE orders SET status = ? WHERE id = ?",
+        { replacements: [newStatus, id] }
+    ).then(data => {
+
+        return data;
+    });
     return query;
 }
 
@@ -468,7 +513,7 @@ const encryptPass = (pass) => {
 
     let encrypted = sequelize.query("SELECT md5(?)",
         { replacements: [pass], type: sequelize.QueryTypes.SELECT }
-    ).then(function (data) {
+    ).then(data => {
 
         let hash = Object.values(data[0])[0];
         // console.log(hash);
@@ -529,7 +574,8 @@ module.exports = {
     createOrder: createOrder,
     updateStock: updateStock,
     getAllOrders: getAllOrders,
-    getOneOrder: getOneOrder, //
+    getOneOrder: getOneOrder,
+    updateOrderStatus: updateOrderStatus, //
     encryptPass: encryptPass,
     checkUser: checkUser
 };
