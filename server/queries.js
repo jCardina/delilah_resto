@@ -351,8 +351,8 @@ const createOrder = (user, products, total, paymentMethod) => {
 
     console.log(products);
 
-    const order = sequelize.query("INSERT INTO orders (user_id, total, payment_method) VALUES(?, ?, ?)",
-        { replacements: [user, total, paymentMethod] }
+    const order = sequelize.query("INSERT INTO orders (user_id, total, payment_method, address) VALUES(?, ?, ?, ?)",
+        { replacements: [user.id, total, paymentMethod, user.address] }
     ).then(async (data) => {
         console.log(data);
 
@@ -425,26 +425,31 @@ const getOrderUserData = (id, moreDetails) => {
     return query;
 }
 
-const getAllOrders = (limit, offset, date, status) => {
+const getAllOrders = (limit, offset, date, status, admin, userId) => { //revisar que no se haya roto con los cambios
 
-    let queryString = "SELECT o.id, u.address, o.total, o.payment_method, o.status, TIME(o.timestamp) AS time, DATE(o.timestamp) AS date FROM orders o JOIN users u on o.user_id = u.id";
+    let queryString = "SELECT id, address, total, payment_method, status, TIME(timestamp) AS time, DATE(timestamp) AS date FROM orders";
 
     let replace = [limit, offset];
 
     if (date && !status) {
-        queryString += " WHERE DATE(o.timestamp) = ?";
+        queryString += " WHERE DATE(timestamp) = ?";
         replace.unshift(date);
 
     } else if (date && status) {
-        queryString += " WHERE DATE(o.timestamp) = ? AND o.status = ?";
+        queryString += " WHERE DATE(timestamp) = ? AND status = ?";
         replace.unshift(date, status);
 
     } else if (!date && status) {
-        queryString += " WHERE o.status = ?";
+        queryString += " WHERE status = ?";
         replace.unshift(status);
     }
 
-    queryString += " ORDER BY o.id DESC LIMIT ? OFFSET ?";
+    if (admin == 'false') {
+        queryString += " WHERE user_id = ?";
+        replace.unshift(userId);
+    }
+
+    queryString += " ORDER BY id DESC LIMIT ? OFFSET ?";
 
     let query = sequelize.query(queryString,
         { replacements: replace, type: sequelize.QueryTypes.SELECT }
@@ -465,16 +470,33 @@ const getAllOrders = (limit, offset, date, status) => {
 }
 
 
-const getOneOrder = (id) => {
 
-    let query = sequelize.query("SELECT o.id, u.address, o.total, o.payment_method, o.status, o.timestamp FROM orders o JOIN users u on o.user_id = u.id WHERE o.id = ?",
-        { replacements: [id], type: sequelize.QueryTypes.SELECT }
+const getOneOrder = (orderId, admin, userId) => { //revisar que no se haya roto con los cambios
+
+    let query = sequelize.query("SELECT id, address, total, payment_method, status, timestamp FROM orders WHERE id = ?",
+        { replacements: [orderId], type: sequelize.QueryTypes.SELECT }
     ).then(async (order) => {
         try {
-            let user = await getOrderUserData(id, true)
-            order[0].user = user;
 
-            let products = await getOrderProducts(id, true);
+            let user, products;
+
+            if (admin == 'false') {
+
+                user = await getOrderUserData(orderId, false);
+
+                if (user.user_id != userId) {
+                    return "forbidden";
+                }
+
+                // products = await getOrderProducts(orderId, false);
+              
+            } else {
+                user = await getOrderUserData(orderId, true); 
+            }
+
+            products = await getOrderProducts(orderId, true);
+            
+            order[0].user = user;
             order[0].products = products;
 
             return order[0];
@@ -495,6 +517,17 @@ const updateOrderStatus = (id, newStatus) => {
     ).then(data => {
 
         return data;
+    });
+    return query;
+}
+
+const deleteOrder = (id) => {
+
+    let query = sequelize.query("DELETE o, op FROM orders o JOIN order_products op  ON o.id = op.order_id WHERE o.id = ?",
+        { replacements: [id] }
+    ).then(data => {
+
+        return data[0];
     });
     return query;
 }
@@ -575,7 +608,8 @@ module.exports = {
     updateStock: updateStock,
     getAllOrders: getAllOrders,
     getOneOrder: getOneOrder,
-    updateOrderStatus: updateOrderStatus, //
+    updateOrderStatus: updateOrderStatus,
+    deleteOrder: deleteOrder, //
     encryptPass: encryptPass,
     checkUser: checkUser
 };

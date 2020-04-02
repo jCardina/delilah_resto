@@ -2,14 +2,14 @@
 const jwt = require('jsonwebtoken');
 const signature = "token_Generator_3402921GtFDnL";
 
-const serverErrorHandler = (error, req, res, next) => {
+const serverErrorHandler = (error, request, response, next) => { //revisar!!!!!!
     
     if(!error) {
         
-        return next();
+        return next(); //hace falta?
     }
     console.log('There has been an error', error);
-    res.status(500).send('Error');
+    response.status(500).send();
 }
 
 const splitToken = (token) => {
@@ -31,7 +31,7 @@ const validateUser = (request, response, next) => { //revisar
     console.log(token);
 
     if (!token) {
-        response.status(401).json({ msj: 'Token missing' });
+        response.status(401).json({ msg: 'Token missing' });
         return;
     }
 
@@ -53,7 +53,7 @@ const validateUser = (request, response, next) => { //revisar
         //     throw "No permmision"; //??
         // }
     } catch (error) {
-        response.status(401).json({ msj: 'Invalid login' }); //cambiar mensaje
+        response.status(401).json({ msg: 'Invalid login' }); //cambiar mensaje
     }
 }
 
@@ -64,7 +64,7 @@ const validateAdmin = (request, response, next) => {
     if (request.admin == 'true') {
         next();
     } else {
-        response.status(403).json({ msj: 'forbidden' }); //cambiar mensaje
+        response.status(403).json({ msg: 'Forbidden' }); //cambiar mensaje?
     }
 }
 

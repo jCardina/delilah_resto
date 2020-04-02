@@ -10,31 +10,13 @@ const middlewares = require('./middlewares.js');
 const validateUser = middlewares.validateUser;
 const validateAdmin = middlewares.validateAdmin;
 
-server.use(cors());
-server.use(bodyParser.json());
-
-
-server.use(middlewares.serverErrorHandler);
-
 
 server.listen(3000, () => {
     console.log("Server status: running");
 });
 
-
-//order by para pedidos y limit y paginacion
-
-// sequelize.query("SELECT op.product_id, op.quantity FROM order_products op JOIN orders o on o.id = op.order_id JOIN products p on p.id = op.product_id WHERE o.id = ?", //segundo join no hace falta
-//     {replacements: [1], type: sequelize.QueryTypes.SELECT}
-// ).then(function(data) {
-//     // console.log(data);
-
-//     newOrder.products = data; 
-
-//     console.log(newOrder);
-
-// });
-
+server.use(cors());
+server.use(bodyParser.json());
 
 //borrado logico de productos y usuarios
 
@@ -56,7 +38,6 @@ server.patch('/products/:id', validateUser, validateAdmin, routes.patchProductBy
 server.delete('/products/:id', validateUser, validateAdmin, routes.deleteProductById);
 
 
-
 //---------------------------------USERS---------------------------------//
 
 server.post('/users', routes.postUser);
@@ -66,7 +47,7 @@ server.post('/users', routes.postUser);
 server.post('/login', routes.postLogin);
 
 //---------------SAME USER ONLY---------------//
-//agregar error para cuando las keys no estan bien escritas o faltan o no tienen contenido y que los numeros sean numeros y los string
+//agregar que los numeros sean numeros y los string
 
 server.get('/users/me', validateUser, routes.getSameUser);
 
@@ -84,9 +65,6 @@ server.get('/users/:id', validateUser, validateAdmin, routes.getUserById);
 
 server.delete('/users/:id', validateUser, validateAdmin, routes.deleteUserById);
 
-
-//sql NOW para hora y fecha sacar moment?
-
 //agregar try catch a todos los endpoint
 
 //---------------------------------ORDERS---------------------------------//
@@ -95,75 +73,9 @@ server.delete('/users/:id', validateUser, validateAdmin, routes.deleteUserById);
 
 server.post('/orders', validateUser, routes.postOrder);
 
-server.get('/users/me/orders', validateUser, (request, response) => { //agregar users y ver si funcionas
-    // const id = request.params.id;
-    const id = request.userId;
+server.get('/users/me/orders', validateUser, routes.getSameUserOrders); //revisar qué devuelve cuando es admin!
 
-    let userOrders = [];
-
-    async function getUserOrders() {
-
-        await sequelize.query("SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC",
-            { replacements: [id], type: sequelize.QueryTypes.SELECT }
-        ).then(data => {
-            userOrders = data;
-            console.log(data);
-        });
-
-
-        for (i = 0; i < userOrders.length; i++) {
-
-            const order = userOrders[i];
-            const products = await sequelize.query("SELECT op.product_id, op.price, op.quantity FROM order_products op WHERE op.order_id = ?",
-                { replacements: [order.id], type: sequelize.QueryTypes.SELECT }
-            ).then(function (data) {
-
-                order.products = data;
-
-            });
-        }
-
-
-        response.json({ data: userOrders });
-    }
-
-    getUserOrders();
-
-
-});
-
-server.get('/users/me/orders/:id', validateUser, (request, response) => { //agregar users y ver si funcionas
-    const orderId = request.params.id;
-    const userId = request.userId;
-
-    let userOrder = {};
-
-    async function getUserOrder() {
-
-        await sequelize.query("SELECT * FROM orders WHERE user_id = ? AND id = ?",
-            { replacements: [userId, orderId], type: sequelize.QueryTypes.SELECT }
-        ).then(data => {
-            userOrder = data[0];
-            console.log(data);
-        });
-
-        const products = await sequelize.query("SELECT op.product_id, op.price, op.quantity FROM order_products op WHERE op.order_id = ?",
-            { replacements: [orderId], type: sequelize.QueryTypes.SELECT }
-        ).then(function (data) {
-
-            userOrder.products = data;
-
-        });
-
-
-        response.json({ data: userOrder });
-    }
-
-    getUserOrder();
-
-
-});
-
+server.get('/users/me/orders/:id', validateUser, routes.getOrderById); //revisar qué devuelve cuando es admin! usar req.path?
 
 //---------------ADMIN ONLY---------------//
 
@@ -173,8 +85,12 @@ server.get('/orders/:id', validateUser, validateAdmin, routes.getOrderById);
 
 server.patch('/orders/:id', validateUser, validateAdmin, routes.patchOrderById);
 
-// agregar delete orders
+server.delete('/orders/:id', validateUser, validateAdmin, routes.deleteOrderById);
 
+
+
+//------------------------
+server.use(middlewares.serverErrorHandler); //revisar!!!!!
 
 
 //------------base de datos provisoria

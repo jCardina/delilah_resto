@@ -34,25 +34,32 @@ const postProduct = async (request, response) => {
 }
 
 
-const getProducts = async (request, response) => {
+const getProducts = async (request, response, next) => {
 
-
-    let data = await queries.getAllProducts(request.admin);
-    response.json({ data: data });
+    try {
+        let data = await queries.getAllProducts(request.admin);
+        response.json({ data: data });
+    } catch (error) {
+        next(error);
+    }
 
 }
 
 //agregar status 200 a las respuestas?
 
-const getProductById = async (request, response) => {
+const getProductById = async (request, response, next) => {
     const id = request.params.id;
 
-    let data = await queries.getOneProduct(id, request.admin);
+    try {
+        let data = await queries.getOneProduct(id, request.admin);
 
-    if (!data) {
-        response.status(404).json({ msg: "Product not found" });
-    } else {
-        response.json({ data: data });
+        if (!data) {
+            response.status(404).json({ msg: "Product not found" });
+        } else {
+            response.json({ data: data });
+        }
+    } catch (error) {
+        next(error);
     }
 
 }
@@ -91,17 +98,20 @@ const patchProductById = async (request, response) => {
 
 }
 
-const deleteProductById = async (request, response) => {
+const deleteProductById = async (request, response, next) => {
     const id = request.params.id;
     //agregar borrado logico con getorders
-    let data = await queries.deleteProduct(id);
+    try {
+        let data = await queries.deleteProduct(id);
 
-    if (data.affectedRows == 0) {
-        response.status(404).json({ msg: "Product not found" });
-    } else {
-        response.status(204).send();
+        if (data.affectedRows == 0) {
+            response.status(404).json({ msg: "Product not found" });
+        } else {
+            response.status(204).send();
+        }
+    } catch (error) {
+        next(error);
     }
-
 }
 
 
@@ -308,7 +318,9 @@ const deleteSameUser = async (request, response) => {
 
 const postOrder = async (request, response) => {
 
-    const userId = request.userId;
+    const user = {};
+    user.id = request.userId;
+
     let { products, payment_method } = request.body;
     let total = 0;
 
@@ -360,7 +372,10 @@ const postOrder = async (request, response) => {
         await queries.updateStock(products[i]);
     }
 
-    let newOrder = await queries.createOrder(userId, products, total, payment_method);
+    let userInfo = await queries.getOneUser(user.id);
+    user.address = userInfo.address;
+
+    let newOrder = await queries.createOrder(user, products, total, payment_method);
     // console.log(newOrder);
     response.status(201).json({ order_id: newOrder });
 
@@ -402,33 +417,36 @@ const getOrders = async (request, response) => {
         status = false;
     }
 
-    let orders = await queries.getAllOrders(limit, offset, date, status);
+    let orders = await queries.getAllOrders(limit, offset, date, status, request.admin);
 
     response.json({ data: orders });
 
 }
 
-const getOrderById = async (request, response) => {
+const getOrderById = async (request, response) => { //prueba   !!!! revisar
 
-    const id = request.params.id;
+    const orderId = request.params.id;
 
-    let order = await queries.getOneOrder(id);
+    let order = await queries.getOneOrder(orderId, request.admin, request.userId);
 
     // response.json({ data: order });
-    
+
     if (!order) {
         response.status(404).json({ msg: "Order not found" });
+    } else if (order == 'forbidden') {
+        response.status(403).json({ msg: "Forbidden" });
+
     } else {
         response.json({ data: order });
     }
 }
 
-const patchOrderById = async  (request, response) => {
+const patchOrderById = async (request, response) => {
     const id = request.params.id;
     const { status } = request.body;
 
     if (status != "nuevo" && status != "confirmado" && status != "preparando" && status != "enviando" && status != "entregado" && status != "cancelado") {
-        response.status(400).json({ msg: "Ivalid order status"});
+        response.status(400).json({ msg: "Ivalid order status" });
         return;
     }
 
@@ -444,6 +462,35 @@ const patchOrderById = async  (request, response) => {
 
 }
 
+const getSameUserOrders = async (request, response) => {
+
+    const id = request.userId;
+    const admin = request.admin;
+
+    if (admin == 'true') {
+        response.status(404).json({ msg: "No orders" });
+        return;
+    }
+
+    let userOrders = await queries.getAllOrders(30, 0, false, false, admin, id);
+
+    response.json({ data: userOrders });
+
+}
+
+//agregar borrado logico con getorders
+const deleteOrderById = async (request, response) => {
+
+    const id = request.params.id;
+    let data = await queries.deleteOrder(id);
+
+    if (data.affectedRows == 0) {
+        response.status(404).json({ msg: "Order not found" });
+    } else {
+        response.status(204).send();
+    }
+
+}
 
 
 
@@ -466,5 +513,7 @@ module.exports = {
     postOrder: postOrder,
     getOrders: getOrders,
     getOrderById: getOrderById,
-    patchOrderById: patchOrderById
+    patchOrderById: patchOrderById,
+    getSameUserOrders: getSameUserOrders,
+    deleteOrderById: deleteOrderById
 };
