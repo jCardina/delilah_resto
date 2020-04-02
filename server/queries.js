@@ -12,14 +12,12 @@ const sequelize = new Sequelize("delilah_db", "root", "", {
 
 
 
-
-
-//Products------------------
+//---------------PRODUCTS---------------//
 
 const createProduct = (name, keyword, price, photo_url, stock) => {
 
-    const query = sequelize.query("INSERT INTO products (name, keyword, price, photo_url, stock, status) VALUES(?, ?, ?, ?, ?, ?)",
-        { replacements: [name, keyword, price, photo_url, stock, "active"] }
+    const query = sequelize.query("INSERT INTO products (name, keyword, price, photo_url, stock) VALUES(?, ?, ?, ?, ?)",
+        { replacements: [name, keyword, price, photo_url, stock] }
     ).then(data => {
         return data;
     });
@@ -34,13 +32,9 @@ const getAllProducts = (admin) => {
     if (admin == "true") {
 
         queryString += "* FROM products WHERE status = 'active'";
-
     } else {
-
         queryString += "id, name, keyword, price, photo_url, stock FROM products WHERE status = 'active' AND stock > 0";
-
     }
-
 
     const query = sequelize.query(queryString,
         { type: sequelize.QueryTypes.SELECT }
@@ -51,6 +45,7 @@ const getAllProducts = (admin) => {
     return query;
 }
 
+
 const getOneProduct = (id, admin) => {
 
     let queryString = "SELECT ";
@@ -58,11 +53,8 @@ const getOneProduct = (id, admin) => {
     if (admin == "true") {
 
         queryString += "* FROM products WHERE status = 'active'";
-
     } else {
-
         queryString += "id, name, keyword, price, photo_url, stock FROM products WHERE status = 'active' AND stock > 0";
-
     }
 
     queryString += " AND id = ?";
@@ -70,17 +62,11 @@ const getOneProduct = (id, admin) => {
     const query = sequelize.query(queryString,
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
     ).then(data => {
-
-        // if (data.length > 0) {
-        //     return data[0];
-
-        // } else {
-        //     return false;
-        // }
         return data[0];
     });
     return query;
 }
+
 
 const updateProduct = (id, name, keyword, price, photo_url, stock) => {
 
@@ -93,7 +79,6 @@ const updateProduct = (id, name, keyword, price, photo_url, stock) => {
         queryString += "name = ?";
         replace.push(name);
         firstClmn = false;
-
     }
 
     if (keyword != undefined) {
@@ -132,7 +117,6 @@ const updateProduct = (id, name, keyword, price, photo_url, stock) => {
 
     }
 
-
     if (stock != undefined) {
 
         if (!firstClmn) {
@@ -156,8 +140,8 @@ const updateProduct = (id, name, keyword, price, photo_url, stock) => {
     });
 
     return query;
-
 }
+
 
 const deleteProduct = (id) => {
 
@@ -175,7 +159,7 @@ const checkProduct = (name, keyword, id) => {
         { replacements: [name, keyword, id], type: sequelize.QueryTypes.SELECT }
     ).then(data => {
         console.log(data);
-        if (data.length > 0) { //revisar
+        if (data.length > 0) {
 
             if (name == data[0].name) {
 
@@ -193,7 +177,43 @@ const checkProduct = (name, keyword, id) => {
 }
 
 
-//Users---------------------
+//---------------USERS---------------//
+
+const encryptPass = (pass) => {
+
+    let encrypted = sequelize.query("SELECT md5(?)",
+        { replacements: [pass], type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+
+        let hash = Object.values(data[0])[0];
+        // console.log(hash);
+
+        return hash;
+    });
+    return encrypted;
+}
+
+
+const checkUser = (user, email, id) => {
+
+    let userMatch = sequelize.query("SELECT username, email FROM users WHERE (username = ? OR email = ?) AND id != ?",
+        { replacements: [user, email, id], type: sequelize.QueryTypes.SELECT }
+    ).then(data => {
+        console.log(data);
+        if (data.length > 0) {
+
+            if (user == data[0].username) {
+                return "Username";
+            } else {
+                return "Email";
+            }
+        } else {
+            return false;
+        }
+    });
+    return userMatch;
+}
+
 
 const getLogData = (user, password) => {
 
@@ -205,8 +225,8 @@ const getLogData = (user, password) => {
     });
 
     return query;
-
 }
+
 
 const createUser = (name, username, email, password, admin, address, phone_number) => {
 
@@ -240,8 +260,8 @@ const getOneUser = (id) => {
         return data[0];
     });
     return query;
-
 }
+
 
 const deleteUser = (id) => {
 
@@ -265,7 +285,6 @@ const updateUser = (id, name, username, email, address, phone, password) => {
         queryString += "name = ?";
         replace.push(name);
         firstClmn = false;
-
     }
 
     if (username != undefined) {
@@ -289,7 +308,6 @@ const updateUser = (id, name, username, email, address, phone, password) => {
             firstClmn = false;
         }
         replace.push(email);
-
     }
 
     if (address != undefined) {
@@ -301,7 +319,6 @@ const updateUser = (id, name, username, email, address, phone, password) => {
             firstClmn = false;
         }
         replace.push(address);
-
     }
 
     if (phone != undefined) {
@@ -313,7 +330,6 @@ const updateUser = (id, name, username, email, address, phone, password) => {
             firstClmn = false;
         }
         replace.push(phone);
-
     }
 
     if (password != undefined) {
@@ -325,7 +341,6 @@ const updateUser = (id, name, username, email, address, phone, password) => {
             firstClmn = false;
         }
         replace.push(password);
-
     }
 
     queryString += " WHERE id = ?"
@@ -339,9 +354,10 @@ const updateUser = (id, name, username, email, address, phone, password) => {
     });
 
     return query;
-
 }
 
+
+//---------------ORDERS---------------//
 
 const createOrder = (user, products, total, paymentMethod) => {
 
@@ -367,6 +383,7 @@ const createOrder = (user, products, total, paymentMethod) => {
     return order;
 }
 
+
 const updateStock = (product) => {
 
     let updatedStock = product.stock - product.quantity;
@@ -380,6 +397,7 @@ const updateStock = (product) => {
 
     return query;
 }
+
 
 const getOrderProducts = (id, moreDetails) => {
 
@@ -401,6 +419,7 @@ const getOrderProducts = (id, moreDetails) => {
     return query;
 }
 
+
 const getOrderUserData = (id, moreDetails) => {
 
     let queryString = "SELECT u.id AS user_id, u.name AS name_lastname";
@@ -421,7 +440,8 @@ const getOrderUserData = (id, moreDetails) => {
     return query;
 }
 
-const getAllOrders = (limit, offset, date, status, admin, userId) => { //revisar que no se haya roto con los cambios
+
+const getAllOrders = (limit, offset, date, status, admin, userId) => {
 
     let queryString = "SELECT id, address, total, payment_method, status, TIME(timestamp) AS time, DATE(timestamp) AS date FROM orders";
 
@@ -466,8 +486,7 @@ const getAllOrders = (limit, offset, date, status, admin, userId) => { //revisar
 }
 
 
-
-const getOneOrder = (orderId, admin, userId) => { //revisar que no se haya roto con los cambios
+const getOneOrder = (orderId, admin, userId) => {
 
     let query = sequelize.query("SELECT id, address, total, payment_method, status, timestamp FROM orders WHERE id = ?",
         { replacements: [orderId], type: sequelize.QueryTypes.SELECT }
@@ -483,8 +502,6 @@ const getOneOrder = (orderId, admin, userId) => { //revisar que no se haya roto 
                 if (user.user_id != userId) {
                     return "forbidden";
                 }
-
-                // products = await getOrderProducts(orderId, false);
               
             } else {
                 user = await getOrderUserData(orderId, true); 
@@ -500,11 +517,11 @@ const getOneOrder = (orderId, admin, userId) => { //revisar que no se haya roto 
         } catch {
             return false;
         }
-
     });
 
     return query;
 }
+
 
 const updateOrderStatus = (id, newStatus) => {
 
@@ -516,6 +533,7 @@ const updateOrderStatus = (id, newStatus) => {
     });
     return query;
 }
+
 
 const deleteOrder = (id) => {
 
@@ -530,63 +548,6 @@ const deleteOrder = (id) => {
 
 
 
-
-
-
-
-
-
-//---------------
-
-const encryptPass = (pass) => {
-
-    let encrypted = sequelize.query("SELECT md5(?)",
-        { replacements: [pass], type: sequelize.QueryTypes.SELECT }
-    ).then(data => {
-
-        let hash = Object.values(data[0])[0];
-        // console.log(hash);
-
-        return hash;
-    });
-    return encrypted;
-}
-//---------
-const checkUser = (user, email, id) => {
-
-    let userMatch = sequelize.query("SELECT username, email FROM users WHERE (username = ? OR email = ?) AND id != ?",
-        { replacements: [user, email, id], type: sequelize.QueryTypes.SELECT }
-    ).then(data => {
-        console.log(data);
-        if (data.length > 0) { //revisar
-
-            if (user == data[0].username) {
-
-                return "Username";
-
-            } else {
-                return "Email";
-            }
-
-        } else {
-            return false;
-        }
-    });
-    return userMatch;
-}
-
-
-
-
-
-
-
-//------------------
-
-
-
-
-
 module.exports = {
     createProduct: createProduct,
     getAllProducts: getAllProducts,
@@ -594,6 +555,8 @@ module.exports = {
     updateProduct: updateProduct,
     deleteProduct: deleteProduct,
     checkProduct: checkProduct,
+    encryptPass: encryptPass,
+    checkUser: checkUser,
     getLogData: getLogData,
     createUser: createUser,
     getAllUsers: getAllUsers,
@@ -605,7 +568,5 @@ module.exports = {
     getAllOrders: getAllOrders,
     getOneOrder: getOneOrder,
     updateOrderStatus: updateOrderStatus,
-    deleteOrder: deleteOrder, //
-    encryptPass: encryptPass,
-    checkUser: checkUser
+    deleteOrder: deleteOrder
 };

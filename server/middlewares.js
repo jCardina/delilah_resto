@@ -2,39 +2,21 @@
 const jwt = require('jsonwebtoken');
 const signature = "token_Generator_3402921GtFDnL";
 
-const serverErrorHandler = (error, request, response, next) => { //revisar!!!!!!
+const serverErrorHandler = (error, request, response, next) => {
 
-    // if (!error) {
-    //     return next(); //hace falta?
-    // }
     console.log('ERROR:', error);
     response.status(500).json({ msg: "An error occurred trying to process your request" });
 }
 
-// const splitToken = (token) => {
-//     try {
-//         let getToken = token.split(' ')[1];
-//         return getToken;
-//     } catch (error) {
-//         return false;
-//     }
-// }
 
-const validateUser = (request, response, next) => { //revisar
+const validateUser = (request, response, next) => {
 
     let token = request.headers.authorization;
 
     console.log(request.path);
 
-    try { //revisar funcionamiento
-        // const token = splitToken(Token);
+    try {
         token = token.split(' ')[1];
-        // console.log(token);
-
-        // if (!token) {
-        //     response.status(401).json({ msg: 'Token missing' });
-        //     return;
-        // }
 
         let verifyToken = jwt.verify(token, signature);
 
@@ -48,25 +30,23 @@ const validateUser = (request, response, next) => { //revisar
         next();
 
     } catch (error) {
-        response.status(401).json({ msg: 'Token missing or invalid' }); //cambiar mensaje
+        response.status(401).json({ msg: 'Token missing or invalid' });
     }
 }
 
 
-
-//validar admin
 const validateAdmin = (request, response, next) => {
     if (request.admin == 'true') {
         next();
     } else {
-        response.status(403).json({ msg: 'Forbidden' }); //cambiar mensaje?
+        response.status(403).json({ msg: 'Forbidden' });
     }
 }
 
 
 module.exports = {
-    serverErrorHandler: serverErrorHandler,
     signature: signature,
+    serverErrorHandler: serverErrorHandler,
     validateUser: validateUser,
     validateAdmin: validateAdmin
 }

@@ -8,7 +8,7 @@ const encryptPass = queries.encryptPass;
 const checkUser = queries.checkUser;
 
 
-//PRODUCTS------------------------------
+//---------------PRODUCTS---------------//
 
 const postProduct = async (request, response, next) => {
     let { name, keyword, price, photo_url, stock } = request.body;
@@ -52,7 +52,6 @@ const getProducts = async (request, response, next) => {
 }
 
 
-
 const getProductById = async (request, response, next) => {
     const id = request.params.id;
 
@@ -67,8 +66,8 @@ const getProductById = async (request, response, next) => {
     } catch (error) {
         next(error);
     }
-
 }
+
 
 const patchProductById = async (request, response, next) => {
     const id = request.params.id;
@@ -85,7 +84,7 @@ const patchProductById = async (request, response, next) => {
         let checkTable = await queries.checkProduct(name, keyword, id);
 
         if (checkTable) {
-            response.status(409).json({ msg: "Product with the same " + checkTable + " already registered" }); //cambiar mensaje?
+            response.status(409).json({ msg: "Product with the same " + checkTable + " already registered" });
             return;
         }
 
@@ -101,17 +100,17 @@ const patchProductById = async (request, response, next) => {
         if (!updatedData) {
             response.status(404).json({ msg: "Product not found" });
         } else {
-            response.json({ data: updatedData }); //cambiar status code?
+            response.json({ data: updatedData });
         }
     } catch (error) {
         next(error);
     }
-
 }
+
 
 const deleteProductById = async (request, response, next) => {
     const id = request.params.id;
-    //agregar borrado logico con getorders
+
     try {
         let data = await queries.deleteProduct(id);
 
@@ -126,14 +125,14 @@ const deleteProductById = async (request, response, next) => {
 }
 
 
-//LOG IN------------------------------
+//---------------USERS---------------//
 
-const postLogin = async (request, response, next) => { //revisar
+const postLogin = async (request, response, next) => {
 
     // console.log(request.body);
     let { user, password } = request.body;
 
-    if (user == undefined || password == undefined) { //agregar validaciones de bad request cuando las keys faltan o estan mal escritas en todas las rutas
+    if (user == undefined || password == undefined) {
         response.status(400).send();
         return;
     }
@@ -161,10 +160,8 @@ const postLogin = async (request, response, next) => { //revisar
     } catch {
         response.status(401).json({ msg: 'Wrong user or password' });
     }
-
 }
 
-//USERS------------------------------
 
 const postUser = async (request, response, next) => {
     let { name, username, email, address, phone_number, password } = request.body;
@@ -175,13 +172,12 @@ const postUser = async (request, response, next) => {
         return;
     }
 
-    //chequear valores comillas vacias y minimo characteres junto con tipo de info en updates tambien
     try {
         let checkUpUser = await checkUser(username, email, 0);
         console.log(checkUpUser);
 
         if (checkUpUser) {
-            response.status(409).json({ msg: checkUpUser + " already registered" }); //cambiar mensaje?
+            response.status(409).json({ msg: checkUpUser + " already registered" });
             return;
         }
 
@@ -198,7 +194,7 @@ const postUser = async (request, response, next) => {
 }
 
 
-const postAdmin = async (request, response) => {
+const postAdmin = async (request, response, next) => {
     let { name, username, email, password } = request.body;
 
     if (name == undefined || username == undefined || email == undefined || password == undefined) {
@@ -207,74 +203,93 @@ const postAdmin = async (request, response) => {
         return;
     }
 
-    //chequear valores comillas vacias y minimo characteres junto con tipo de info en updates tambien
+    try {
 
-    let checkUpUser = await checkUser(username, email, 0);
-    console.log(checkUpUser);
+        let checkUpUser = await checkUser(username, email, 0);
+        console.log(checkUpUser);
 
-    if (checkUpUser) {
-        response.status(409).json({ msg: checkUpUser + " already registered" }); //cambiar mensaje?
-        return;
+        if (checkUpUser) {
+            response.status(409).json({ msg: checkUpUser + " already registered" }); //cambiar mensaje?
+            return;
+        }
+
+        password = await encryptPass(password);
+
+        let admin = 1;
+
+        let create = await queries.createUser(name, username, email, password, admin);
+
+        response.status(201).json({ msg: "Admin user created" });
+
+    } catch (error) {
+        next(error);
     }
-
-    password = await encryptPass(password);
-
-    let admin = 1;
-
-    let create = await queries.createUser(name, username, email, password, admin);
-
-    response.status(201).json({ msg: "Admin user created" });
 }
 
 
-const getUsers = async (request, response) => {
+const getUsers = async (request, response, next) => {
 
-    let data = await queries.getAllUsers();
-    response.json({ data: data });
-}
-
-const getUserById = async (request, response) => {
-
-    const id = request.params.id;
-
-    let data = await queries.getOneUser(id);
-
-    if (!data) {
-        response.status(404).json({ msg: "User not found" });
-    } else {
+    try {
+        let data = await queries.getAllUsers();
         response.json({ data: data });
+    } catch (error) {
+        next(error);
     }
-
 }
 
-const deleteUserById = async (request, response) => {
+
+const getUserById = async (request, response, next) => {
+
     const id = request.params.id;
-    //agregar borrado logico
 
-    let data = await queries.deleteUser(id);
+    try {
+        let data = await queries.getOneUser(id);
 
-    if (data.affectedRows == 0) {
-        response.status(404).json({ msg: "User not found" });
-    } else {
-        response.status(204).send();
+        if (!data) {
+            response.status(404).json({ msg: "User not found" });
+        } else {
+            response.json({ data: data });
+        }
+    } catch (error) {
+        next(error);
     }
-
 }
 
 
-const getSameUser = async (request, response) => {
-    let data = await queries.getOneUser(request.userId);
+const deleteUserById = async (request, response, next) => {
+    const id = request.params.id;
 
-    if (!data) {
-        response.status(404).json({ msg: "User not found" });
-    } else {
-        response.json({ data: data }); //cambiar status code?
+    try {
+        let data = await queries.deleteUser(id);
+
+        if (data.affectedRows == 0) {
+            response.status(404).json({ msg: "User not found" });
+        } else {
+            response.status(204).send();
+        }
+    } catch (error) {
+        next(error);
     }
-
 }
 
 
-const patchSameUser = async (request, response) => {
+const getSameUser = async (request, response, next) => {
+
+    try {
+        let data = await queries.getOneUser(request.userId);
+
+        if (!data) {
+            response.status(404).json({ msg: "User not found" });
+        } else {
+            response.json({ data: data });
+        }
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+const patchSameUser = async (request, response, next) => {
 
     const id = request.userId;
     let { name, username, email, address, phone_number, password } = request.body;
@@ -285,58 +300,65 @@ const patchSameUser = async (request, response) => {
         return;
     }
 
-    if (username != undefined || email != undefined) {
+    try {
+        if (username != undefined || email != undefined) {
 
-        let checkUpUser = await checkUser(username, email, id);
+            let checkUpUser = await checkUser(username, email, id);
 
-        if (checkUpUser) {
-            response.status(409).json({ msg: checkUpUser + " already registered" }); //cambiar mensaje?
-            return;
+            if (checkUpUser) {
+                response.status(409).json({ msg: checkUpUser + " already registered" }); //cambiar mensaje?
+                return;
+            }
         }
+
+        if (password != undefined) {
+            password = await encryptPass(password);
+        }
+
+
+        let update = await queries.updateUser(id, name, username, email, address, phone_number, password);
+
+        let updatedData = await queries.getOneUser(id);
+        // console.log(updatedInfo);
+
+        if (!updatedData) {
+            response.status(404).json({ msg: "User not found" });
+        } else {
+            response.json({ data: updatedData });
+        }
+
+    } catch (error) {
+        next(error);
     }
-
-    if (password != undefined) {
-        password = await encryptPass(password);
-    }
-
-
-    let update = await queries.updateUser(id, name, username, email, address, phone_number, password);
-
-    let updatedData = await queries.getOneUser(id);
-    // console.log(updatedInfo);
-
-    if (!updatedData) {
-        response.status(404).json({ msg: "User not found" });
-    } else {
-        response.json({ data: updatedData }); //cambiar status code?
-    }
-
-
-
 }
 
-const deleteSameUser = async (request, response) => {
+
+const deleteSameUser = async (request, response, next) => {
     const id = request.userId;
-    //agregar borrado logico
 
-    let data = await queries.deleteUser(id);
+    try {
 
-    if (data.affectedRows == 0) {
-        response.status(404).json({ msg: "User not found" }); //cambiar mensaje o sacar?
-    } else {
-        response.status(204).send();
+        let data = await queries.deleteUser(id);
+
+        if (data.affectedRows == 0) {
+            response.status(404).json({ msg: "User not found" });
+        } else {
+            response.status(204).send();
+        }
+    } catch (error) {
+        next(error);
     }
-
 }
 
 
+//---------------ORDERS---------------//
 
+const postOrder = async (request, response, next) => {
 
-
-
-//ORDERS------------------------------
-
-const postOrder = async (request, response) => {
+    if (request.admin == 'true') {
+        response.status(403).send();
+        return;
+    }
 
     const user = {};
     user.id = request.userId;
@@ -354,75 +376,74 @@ const postOrder = async (request, response) => {
         return;
     }
 
-    for (i = 0; i < products.length; i++) {
+    try {
 
-        let quantity = products[i].quantity;
+        for (i = 0; i < products.length; i++) {
 
-        if (typeof (quantity) != "number" || parseInt(quantity) < 1) {
-            response.status(400).json({ msg: "Invalid quantity" });
-            return;
+            let quantity = products[i].quantity;
+
+            if (typeof (quantity) != "number" || parseInt(quantity) < 1) {
+                response.status(400).json({ msg: "Invalid quantity" });
+                return;
+            }
+
+            let product = await queries.getOneProduct(products[i].id);
+
+            if (!product) {
+                response.status(404).json({ msg: "Product not found or unavailable, product_id: " + products[i].id });
+                return;
+            }
+
+            if (products[i].quantity > product.stock) {
+                response.status(409).json({ msg: "Not enough items in stock, product_id: " + product.id });
+                return;
+            }
+
+
+            products[i].price = product.price;
+            products[i].stock = product.stock;
+
+
+            let partial = product.price * products[i].quantity;
+            total += partial;
+            console.log(partial);
         }
 
-        let product = await queries.getOneProduct(products[i].id);
+        console.log(total);
 
-        if (!product) {
-            response.status(404).json({ msg: "Product not found or unavailable, product_id: " + products[i].id });
-            return;
+        for (i = 0; i < products.length; i++) {
+
+            await queries.updateStock(products[i]);
         }
 
-        if (products[i].quantity > product.stock) {
-            response.status(409).json({ msg: "Not enough items in stock, product_id: " + product.id });
-            return;
-        }
+        let userInfo = await queries.getOneUser(user.id);
+        user.address = userInfo.address;
 
+        let newOrder = await queries.createOrder(user, products, total, payment_method);
+        // console.log(newOrder);
+        response.status(201).json({ order_id: newOrder });
 
-        products[i].price = product.price;
-        products[i].stock = product.stock;
-
-
-        let partial = product.price * products[i].quantity;
-        total += partial;
-        console.log(partial);
+    } catch (error) {
+        next(error);
     }
-
-    console.log(total);
-
-    for (i = 0; i < products.length; i++) {
-
-        await queries.updateStock(products[i]);
-    }
-
-    let userInfo = await queries.getOneUser(user.id);
-    user.address = userInfo.address;
-
-    let newOrder = await queries.createOrder(user, products, total, payment_method);
-    // console.log(newOrder);
-    response.status(201).json({ order_id: newOrder });
-
 }
 
-const getOrders = async (request, response) => {
+
+const getOrders = async (request, response, next) => {
 
     let { limit, offset, date, status } = request.query;
-    // console.log(isNaN(limit));
-
 
     if (limit != undefined && !isNaN(limit)) {
 
         limit = parseInt(limit);
-        // console.log(limit);
-
     } else {
-
         limit = 30;
     }
 
     if (offset != undefined && !isNaN(offset)) {
 
         offset = parseInt(offset);
-
     } else {
-
         offset = 0;
     }
 
@@ -437,19 +458,26 @@ const getOrders = async (request, response) => {
         status = false;
     }
 
-    let orders = await queries.getAllOrders(limit, offset, date, status, request.admin);
+    try {
+        let orders = await queries.getAllOrders(limit, offset, date, status, request.admin);
+        response.json({ data: orders });
 
-    response.json({ data: orders });
-
+    } catch (error) {
+        next(error);
+    }
 }
 
-const getOrderById = async (request, response) => { //prueba   !!!! revisar
+
+const getOrderById = async (request, response, next) => {
 
     const orderId = request.params.id;
+    let order;
 
-    let order = await queries.getOneOrder(orderId, request.admin, request.userId);
-
-    // response.json({ data: order });
+    try {
+        order = await queries.getOneOrder(orderId, request.admin, request.userId);
+    } catch (error) {
+        return next(error);
+    }
 
     if (!order) {
         response.status(404).json({ msg: "Order not found" });
@@ -461,7 +489,8 @@ const getOrderById = async (request, response) => { //prueba   !!!! revisar
     }
 }
 
-const patchOrderById = async (request, response) => {
+
+const patchOrderById = async (request, response, next) => {
     const id = request.params.id;
     const { status } = request.body;
 
@@ -470,19 +499,24 @@ const patchOrderById = async (request, response) => {
         return;
     }
 
-    let update = await queries.updateOrderStatus(id, status);
-    // console.log(update);
-    let updatedOrder = await queries.getOneOrder(id);
+    try {
 
-    if (!updatedOrder) {
-        response.status(404).json({ msg: "Order not found" });
-    } else {
-        response.json({ order_id: id, new_status: status });
+        let update = await queries.updateOrderStatus(id, status);
+        // console.log(update);
+        let updatedOrder = await queries.getOneOrder(id);
+
+        if (!updatedOrder) {
+            response.status(404).json({ msg: "Order not found" });
+        } else {
+            response.json({ order_id: id, new_status: status });
+        }
+    } catch (error) {
+        next(error);
     }
-
 }
 
-const getSameUserOrders = async (request, response) => {
+
+const getSameUserOrders = async (request, response, next) => {
 
     const id = request.userId;
     const admin = request.admin;
@@ -492,26 +526,34 @@ const getSameUserOrders = async (request, response) => {
         return;
     }
 
-    let userOrders = await queries.getAllOrders(30, 0, false, false, admin, id);
+    try {
+        let userOrders = await queries.getAllOrders(30, 0, false, false, admin, id);
+        response.json({ data: userOrders });
 
-    response.json({ data: userOrders });
-
+    } catch (error) {
+        next(error);
+    }
 }
 
-//agregar borrado logico con getorders
-const deleteOrderById = async (request, response) => {
+
+const deleteOrderById = async (request, response, next) => {
 
     const id = request.params.id;
-    let data = await queries.deleteOrder(id);
 
-    if (data.affectedRows == 0) {
-        response.status(404).json({ msg: "Order not found" });
-    } else {
-        response.status(204).send();
+    try {
+
+        let data = await queries.deleteOrder(id);
+
+        if (data.affectedRows == 0) {
+            response.status(404).json({ msg: "Order not found" });
+        } else {
+            response.status(204).send();
+        }
+
+    } catch (error) {
+        next(error);
     }
-
 }
-
 
 
 

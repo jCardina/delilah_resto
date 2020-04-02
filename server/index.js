@@ -18,10 +18,6 @@ app.listen(3000, () => {
 app.use(cors());
 app.use(bodyParser.json());
 
-//borrado logico de productos y usuarios
-
-//agregar respuestas de errores y codigos exito/error y middlewares (token y same user)
-
 
 //---------------------------------PRODUCTS---------------------------------//
 
@@ -47,7 +43,6 @@ app.post('/users', routes.postUser);
 app.post('/login', routes.postLogin);
 
 //---------------SAME USER ONLY---------------//
-//agregar que los numeros sean numeros y los string
 
 app.get('/users/me', validateUser, routes.getSameUser);
 
@@ -65,7 +60,6 @@ app.get('/users/:id', validateUser, validateAdmin, routes.getUserById);
 
 app.delete('/users/:id', validateUser, validateAdmin, routes.deleteUserById);
 
-//agregar try catch a todos los endpoint
 
 //---------------------------------ORDERS---------------------------------//
 
@@ -73,9 +67,9 @@ app.delete('/users/:id', validateUser, validateAdmin, routes.deleteUserById);
 
 app.post('/orders', validateUser, routes.postOrder);
 
-app.get('/users/me/orders', validateUser, routes.getSameUserOrders); //revisar qué devuelve cuando es admin!
+app.get('/users/me/orders', validateUser, routes.getSameUserOrders);
 
-app.get('/users/me/orders/:id', validateUser, routes.getOrderById); //revisar qué devuelve cuando es admin! usar req.path?
+app.get('/users/me/orders/:id', validateUser, routes.getOrderById);
 
 //---------------ADMIN ONLY---------------//
 
@@ -89,27 +83,6 @@ app.delete('/orders/:id', validateUser, validateAdmin, routes.deleteOrderById);
 
 
 
-//------------------------
-app.use(middlewares.serverErrorHandler); //revisar!!!!!
+//------------------------------SERVER ERRORS------------------------------//
 
-
-//------------base de datos provisoria
-
-let users = [
-    {
-        userName: "pabloLop",
-        password: "passW",
-        admin: true
-    },
-    {
-        userName: "marGon",
-        password: "passWoo",
-        admin: false
-    },
-    {
-        userName: "marPer",
-        password: "passWoo234",
-        admin: false
-    }
-
-];
+app.use(middlewares.serverErrorHandler);
