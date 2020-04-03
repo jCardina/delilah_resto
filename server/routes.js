@@ -19,6 +19,38 @@ const postProduct = async (request, response, next) => {
         return;
     }
 
+    let validName = checkValidData(productNamePattern, name);
+
+        if (!validName) {
+            response.status(422).json({ msg: "Product name must contain between 3 and 30 characters, at least one letter, no numbers; Special characters allowed: spaces, '´' accented vowels, 'ñ'"});
+            return;
+        }
+
+    let validKeyword = checkValidData(keywordPattern, keyword);
+
+    if (!validKeyword) {
+        response.status(422).json({ msg: "Keyword must contain between 3 and 10 characters, at least one letter, no numbers, no spaces; Special characters allowed: '-', '_'"});
+        return;
+    }
+
+    let validPrice = checkValidData(pricePattern, price);
+
+    if (!validPrice) {
+        response.status(422).json({ msg: "Price must contain at least 2 digits followed by a dot and 2 more digits"});
+        return;
+    }
+
+    if (typeof(photo_url) != "string" || photo_url.length < 10) {
+        response.status(422).json({ msg: "URL must contain at least 10 characters"});
+        return;
+    }
+
+    if (isNaN(stock) || parseInt(stock) < 0) {
+        response.status(422).json({ msg: "Stock must be an integer, minimum value: 0"});
+        return;
+    }
+
+
     try {
 
         let checkTable = await queries.checkProduct(name, keyword, 0);
@@ -79,6 +111,37 @@ const patchProductById = async (request, response, next) => {
         return;
     }
 
+    let validName = checkValidData(productNamePattern, name);
+
+        if (name != undefined && !validName) {
+            response.status(422).json({ msg: "Product name must contain between 3 and 30 characters, at least one letter, no numbers; Special characters allowed: spaces, '´' accented vowels, 'ñ'"});
+            return;
+        }
+
+    let validKeyword = checkValidData(keywordPattern, keyword);
+
+    if (keyword != undefined && !validKeyword) {
+        response.status(422).json({ msg: "Keyword must contain between 3 and 10 characters, at least one letter, no numbers, no spaces; Special characters allowed: '-', '_'"});
+        return;
+    }
+
+    let validPrice = checkValidData(pricePattern, price);
+
+    if (price != undefined && !validPrice) {
+        response.status(422).json({ msg: "Price must contain at least 2 digits followed by a dot and 2 more digits"});
+        return;
+    }
+
+    if (photo_url != undefined && (typeof(photo_url) != "string" || photo_url.length < 10)) {
+        response.status(422).json({ msg: "URL must contain at least 10 characters"});
+        return;
+    }
+
+    if (stock != undefined && (isNaN(stock) || parseInt(stock) < 0)) {
+        response.status(422).json({ msg: "Stock must be an integer, minimum value: 0"});
+        return;
+    }
+
     try {
 
         let checkTable = await queries.checkProduct(name, keyword, id);
@@ -88,10 +151,7 @@ const patchProductById = async (request, response, next) => {
             return;
         }
 
-        // console.log(typeof(name));
-        // if (name.length < 3) {
-        //     console.log("corto");
-        // }
+        
 
         let update = await queries.updateProduct(id, name, keyword, price, photo_url, stock);
 
@@ -606,11 +666,15 @@ const deleteOrderById = async (request, response, next) => {
 
 //---------------DATA VALIDATION---------------//
 
-const emailPattern = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+const nameLastnamePattern = new RegExp("^(?=.*[A-Za-z])[a-zA-ZñÑáéíóúÁÉÍÓÚü ]{5,40}$");
+const addressPattern = new RegExp("^(?=.*[A-Za-z])[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚü ]{5,50}$");
 const usernamePattern = new RegExp("^[a-zA-Z0-9_-]{6,15}$");
+const emailPattern = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 const phonePattern = new RegExp("^[0-9]{2,4}[ ][0-9]{7,10}$");
-const keywordPattern = new RegExp("^[a-zA-Z_-]{3,10}$");
 const passwordPattern = new RegExp("^(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9_-]{8,}$");
+const productNamePattern = new RegExp("^(?=.*[A-Za-z])[a-zA-ZñÑáéíóúÁÉÍÓÚü ]{3,30}$");
+const keywordPattern = new RegExp("^(?=.*[A-Za-z])[a-zA-Z_-]{3,10}$");
+const pricePattern = new RegExp("^[0-9]{2,}[.][0-9]{2}$");
 
 
 const checkValidData = (pattern, data) => {
