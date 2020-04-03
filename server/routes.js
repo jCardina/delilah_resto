@@ -604,49 +604,18 @@ const deleteOrderById = async (request, response, next) => {
 
 
 
-//---------------DATA VALIDATIONS---------------//
+//---------------DATA VALIDATION---------------//
 
-const checkValidEmail = (email) => {
+const emailPattern = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+const usernamePattern = new RegExp("^[a-zA-Z0-9_-]{6,15}$");
+const phonePattern = new RegExp("^[0-9]{2,4}[ ][0-9]{7,10}$");
+const keywordPattern = new RegExp("^[a-zA-Z_-]{3,10}$");
+const passwordPattern = new RegExp("^(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9_-]{8,}$");
 
-    const pattern = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
-    let validData = pattern.test(email);
-    return validData;
+const checkValidData = (pattern, data) => {
 
-}
-
-const checkValidUsername = (username) => {
-
-    const pattern = new RegExp("^[a-zA-Z0-9_-]{6,15}$");
-        
-    let validData = pattern.test(username);
-    return validData;
-
-}
-
-const checkValidPhoneNumber = (phone) => {
-
-    const pattern = new RegExp("^[0-9]{2,4}[ ][0-9]{7,10}$");
-        
-    let validData = pattern.test(phone);
-    return validData;
-
-}
-
-const checkValidKeyword = (keyword) => {
-
-    const pattern = new RegExp("^[a-zA-Z_-]{3,10}$");
-     
-    let validData = pattern.test(keyword);
-    return validData;
-
-}
-
-const checkValidPassword = (pass) => {
-
-    const pattern = new RegExp("^(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9_-]{8,}$");
-    
-    let validData = pattern.test(pass);
+    let validData = pattern.test(data);
     return validData;
 
 }
