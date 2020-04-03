@@ -24,15 +24,15 @@ const postProduct = async (request, response, next) => {
         let checkTable = await queries.checkProduct(name, keyword, 0);
 
         if (checkTable) {
-            response.status(409).json({ msg: "Product with the same " + checkTable + " already registered" }); //cambiar mensaje?
+            response.status(409).json({ msg: "Product with the same " + checkTable + " already registered" });
             return;
         }
 
-        let post = await queries.createProduct(name, keyword, price, photo_url, stock); //validar que esten todos los datos y que no exista otro activo
+        let post = await queries.createProduct(name, keyword, price, photo_url, stock);
         let newProduct = await queries.getOneProduct(post[0]);
         console.log(post);
 
-        response.status(201).json({ data: newProduct }); //que datos devolver?
+        response.status(201).json({ data: newProduct });
 
     } catch (error) {
         next(error);
@@ -112,6 +112,16 @@ const deleteProductById = async (request, response, next) => {
     const id = request.params.id;
 
     try {
+        // let deleteType;
+
+        // let ordersOfProduct = await
+
+        // if ( ordersOfProduct.length > 0) {
+        //     deleteType = 0;
+        // } else {
+        //     deleteType = 1;
+        // }
+
         let data = await queries.deleteProduct(id);
 
         if (data.affectedRows == 0) {
@@ -259,14 +269,32 @@ const getUserById = async (request, response, next) => {
 const deleteUserById = async (request, response, next) => {
     const id = request.params.id;
 
+    //prevent admin from deleting itself
+    if (request.userId == id) {
+        response.status(403).send();
+        return;
+    }
+
     try {
-        let data = await queries.deleteUser(id);
+        let userOrders = await queries.getAllOrders(5, 0, false, false, "false", id);
+
+        let deleteType;
+        
+        if (userOrders.length > 0) {
+            deleteType = 0;
+        } else {
+            deleteType = 1;
+        }
+
+        let data = await queries.deleteUser(id, deleteType);
+        console.log(data);
 
         if (data.affectedRows == 0) {
             response.status(404).json({ msg: "User not found" });
         } else {
             response.status(204).send();
         }
+        
     } catch (error) {
         next(error);
     }
@@ -336,9 +364,25 @@ const patchSameUser = async (request, response, next) => {
 const deleteSameUser = async (request, response, next) => {
     const id = request.userId;
 
+    //prevent admin from deleting itself
+    if (request.admin == 'true') {
+        response.status(403).send();
+        return;
+    }
+
     try {
 
-        let data = await queries.deleteUser(id);
+        let userOrders = await queries.getAllOrders(5, 0, false, false, "false", id);
+
+        let deleteType;
+        
+        if (userOrders.length > 0) {
+            deleteType = 0;
+        } else {
+            deleteType = 1;
+        }
+
+        let data = await queries.deleteUser(id, deleteType);
 
         if (data.affectedRows == 0) {
             response.status(404).json({ msg: "User not found" });
@@ -378,6 +422,8 @@ const postOrder = async (request, response, next) => {
 
     try {
 
+        let idProductsOrdered = [];
+
         for (i = 0; i < products.length; i++) {
 
             let quantity = products[i].quantity;
@@ -386,6 +432,17 @@ const postOrder = async (request, response, next) => {
                 response.status(400).json({ msg: "Invalid quantity" });
                 return;
             }
+            
+            for (j = 0; j < idProductsOrdered.length; j++) {
+
+                if (products[i].id == idProductsOrdered[j]) {
+                    response.status(400).json({ msg: "Each product can only be sent once per order" });
+                    return;
+                }
+            }
+
+            idProductsOrdered.push(products[i].id);
+            console.log(idProductsOrdered);
 
             let product = await queries.getOneProduct(products[i].id);
 
@@ -394,19 +451,18 @@ const postOrder = async (request, response, next) => {
                 return;
             }
 
+
             if (products[i].quantity > product.stock) {
                 response.status(409).json({ msg: "Not enough items in stock, product_id: " + product.id });
                 return;
             }
 
-
             products[i].price = product.price;
             products[i].stock = product.stock;
 
-
             let partial = product.price * products[i].quantity;
             total += partial;
-            console.log(partial);
+            // console.log(partial);
         }
 
         console.log(total);

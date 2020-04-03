@@ -145,12 +145,27 @@ const updateProduct = (id, name, keyword, price, photo_url, stock) => {
 
 const deleteProduct = (id) => {
 
-    const query = sequelize.query("DELETE FROM products WHERE id = ?",
-        { replacements: [id] }
-    ).then(data => {
-        return data[0];
+    const query = sequelize.query("SELECT id FROM order_products WHERE product_id = ?",
+        { replacements: [id], type: sequelize.QueryTypes.SELECT }
+    ).then(async (data) => {
+       
+        let queryString;
+
+        if (data.length > 0) {
+            queryString = "UPDATE products SET name = 'product_deleted_" + id + "', status = 'inactive' WHERE id = ?";
+        } else {
+            queryString = "DELETE FROM products WHERE id = ?";
+        }
+        
+        const dlte = await sequelize.query( queryString,
+            { replacements: [id] }
+        ).then(data => {
+            return data[0];
+        });
+        return dlte;
     });
     return query;
+
 }
 
 const checkProduct = (name, keyword, id) => {
@@ -217,7 +232,7 @@ const checkUser = (user, email, id) => {
 
 const getLogData = (user, password) => {
 
-    let query = sequelize.query("SELECT id, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE (username = ? AND password = ?) OR (email = ? AND password = ?)",
+    let query = sequelize.query("SELECT id, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE ((username = ? AND password = ?) OR (email = ? AND password = ?)) AND status = 'active'",
         { replacements: [user, password, user, password], type: sequelize.QueryTypes.SELECT }
     ).then(data => {
         console.log(data);
@@ -242,7 +257,7 @@ const createUser = (name, username, email, password, admin, address, phone_numbe
 
 const getAllUsers = () => {
 
-    const query = sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users",
+    const query = sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin, status FROM users WHERE status = 'active'",
         { type: sequelize.QueryTypes.SELECT }
     ).then(data => {
         return data;
@@ -253,7 +268,7 @@ const getAllUsers = () => {
 
 const getOneUser = (id) => {
 
-    const query = sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE id = ?",
+    const query = sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE status = 'active' AND id = ?",
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
     ).then(data => {
         // console.log(data[0]);
@@ -263,9 +278,18 @@ const getOneUser = (id) => {
 }
 
 
-const deleteUser = (id) => {
+const deleteUser = (id, type) => {
 
-    const query = sequelize.query("DELETE FROM users WHERE id = ?",
+    let queryString;
+
+    if (type == 0) {
+
+        queryString = "UPDATE users SET email = 'user_deleted_" + id + "', status = 'inactive' WHERE id = ?";
+    } else {
+        queryString = "DELETE FROM users WHERE id = ?";
+    }
+
+    const query = sequelize.query( queryString,
         { replacements: [id] }
     ).then(data => {
         return data[0];
