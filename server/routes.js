@@ -112,16 +112,7 @@ const deleteProductById = async (request, response, next) => {
     const id = request.params.id;
 
     try {
-        // let deleteType;
-
-        // let ordersOfProduct = await
-
-        // if ( ordersOfProduct.length > 0) {
-        //     deleteType = 0;
-        // } else {
-        //     deleteType = 1;
-        // }
-
+        
         let data = await queries.deleteProduct(id);
 
         if (data.affectedRows == 0) {
@@ -609,6 +600,55 @@ const deleteOrderById = async (request, response, next) => {
     } catch (error) {
         next(error);
     }
+}
+
+
+
+//---------------DATA VALIDATIONS---------------//
+
+const checkValidEmail = (email) => {
+
+    const pattern = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+
+    let validData = pattern.test(email);
+    return validData;
+
+}
+
+const checkValidUsername = (username) => {
+
+    const pattern = new RegExp("^[a-zA-Z0-9_-]{6,15}$");
+        
+    let validData = pattern.test(username);
+    return validData;
+
+}
+
+const checkValidPhoneNumber = (phone) => {
+
+    const pattern = new RegExp("^[0-9]{2,4}[ ][0-9]{7,10}$");
+        
+    let validData = pattern.test(phone);
+    return validData;
+
+}
+
+const checkValidKeyword = (keyword) => {
+
+    const pattern = new RegExp("^[a-zA-Z_-]{3,10}$");
+     
+    let validData = pattern.test(keyword);
+    return validData;
+
+}
+
+const checkValidPassword = (pass) => {
+
+    const pattern = new RegExp("^(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9_-]{8,}$");
+    
+    let validData = pattern.test(pass);
+    return validData;
+
 }
 
 
