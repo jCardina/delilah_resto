@@ -13,44 +13,6 @@ const checkUser = queries.checkUser;
 const postProduct = async (request, response, next) => {
     let { name, keyword, price, photo_url, stock } = request.body;
 
-    if (name == undefined || keyword == undefined || price == undefined || photo_url == undefined || stock == undefined) {
-
-        response.status(400).send();
-        return;
-    }
-
-    let validName = checkValidData(productNamePattern, name);
-
-        if (!validName) {
-            response.status(422).json({ msg: "Product name must contain between 3 and 30 characters, at least one letter, no numbers; Special characters allowed: spaces, '´' accented vowels, 'ñ'"});
-            return;
-        }
-
-    let validKeyword = checkValidData(keywordPattern, keyword);
-
-    if (!validKeyword) {
-        response.status(422).json({ msg: "Keyword must contain between 3 and 10 characters, at least one letter, no numbers, no spaces; Special characters allowed: '-', '_'"});
-        return;
-    }
-
-    let validPrice = checkValidData(pricePattern, price);
-
-    if (!validPrice) {
-        response.status(422).json({ msg: "Price must contain at least 2 digits followed by a dot and 2 more digits"});
-        return;
-    }
-
-    if (typeof(photo_url) != "string" || photo_url.length < 10) {
-        response.status(422).json({ msg: "URL must contain at least 10 characters"});
-        return;
-    }
-
-    if (isNaN(stock) || parseInt(stock) < 0) {
-        response.status(422).json({ msg: "Stock must be an integer, minimum value: 0"});
-        return;
-    }
-
-
     try {
 
         let checkTable = await queries.checkProduct(name, keyword, 0);
@@ -105,43 +67,6 @@ const patchProductById = async (request, response, next) => {
     const id = request.params.id;
     let { name, keyword, price, photo_url, stock } = request.body;
 
-    if (name == undefined && keyword == undefined && price == undefined && photo_url == undefined && stock == undefined) {
-
-        response.status(400).send();
-        return;
-    }
-
-    let validName = checkValidData(productNamePattern, name);
-
-        if (name != undefined && !validName) {
-            response.status(422).json({ msg: "Product name must contain between 3 and 30 characters, at least one letter, no numbers; Special characters allowed: spaces, '´' accented vowels, 'ñ'"});
-            return;
-        }
-
-    let validKeyword = checkValidData(keywordPattern, keyword);
-
-    if (keyword != undefined && !validKeyword) {
-        response.status(422).json({ msg: "Keyword must contain between 3 and 10 characters, at least one letter, no numbers, no spaces; Special characters allowed: '-', '_'"});
-        return;
-    }
-
-    let validPrice = checkValidData(pricePattern, price);
-
-    if (price != undefined && !validPrice) {
-        response.status(422).json({ msg: "Price must contain at least 2 digits followed by a dot and 2 more digits"});
-        return;
-    }
-
-    if (photo_url != undefined && (typeof(photo_url) != "string" || photo_url.length < 10)) {
-        response.status(422).json({ msg: "URL must contain at least 10 characters"});
-        return;
-    }
-
-    if (stock != undefined && (isNaN(stock) || parseInt(stock) < 0)) {
-        response.status(422).json({ msg: "Stock must be an integer, minimum value: 0"});
-        return;
-    }
-
     try {
 
         let checkTable = await queries.checkProduct(name, keyword, id);
@@ -150,8 +75,6 @@ const patchProductById = async (request, response, next) => {
             response.status(409).json({ msg: "Product with the same " + checkTable + " already registered" });
             return;
         }
-
-        
 
         let update = await queries.updateProduct(id, name, keyword, price, photo_url, stock);
 
@@ -227,12 +150,6 @@ const postLogin = async (request, response, next) => {
 const postUser = async (request, response, next) => {
     let { name, username, email, address, phone_number, password } = request.body;
 
-    if (name == undefined || username == undefined || email == undefined || address == undefined || phone_number == undefined || password == undefined) {
-
-        response.status(400).send();
-        return;
-    }
-
     try {
         let checkUpUser = await checkUser(username, email, 0);
         console.log(checkUpUser);
@@ -258,19 +175,13 @@ const postUser = async (request, response, next) => {
 const postAdmin = async (request, response, next) => {
     let { name, username, email, password } = request.body;
 
-    if (name == undefined || username == undefined || email == undefined || password == undefined) {
-
-        response.status(400).send();
-        return;
-    }
-
     try {
 
         let checkUpUser = await checkUser(username, email, 0);
         console.log(checkUpUser);
 
         if (checkUpUser) {
-            response.status(409).json({ msg: checkUpUser + " already registered" }); //cambiar mensaje?
+            response.status(409).json({ msg: checkUpUser + " already registered" });
             return;
         }
 
@@ -373,19 +284,13 @@ const patchSameUser = async (request, response, next) => {
     const id = request.userId;
     let { name, username, email, address, phone_number, password } = request.body;
 
-    if (name == undefined && username == undefined && email == undefined && address == undefined && phone_number == undefined && password == undefined) {
-
-        response.status(400).send();
-        return;
-    }
-
     try {
         if (username != undefined || email != undefined) {
 
             let checkUpUser = await checkUser(username, email, id);
 
             if (checkUpUser) {
-                response.status(409).json({ msg: checkUpUser + " already registered" }); //cambiar mensaje?
+                response.status(409).json({ msg: checkUpUser + " already registered" });
                 return;
             }
         }
@@ -461,39 +366,9 @@ const postOrder = async (request, response, next) => {
     let { products, payment_method } = request.body;
     let total = 0;
 
-    if (typeof (products) != "object" || products.length == undefined || products.length < 1) {
-        response.status(400).json({ msg: "List of products missing" });
-        return;
-    }
-
-    if (payment_method != "efectivo" && payment_method != "tarjeta") {
-        response.status(400).json({ msg: "Invalid payment method" });
-        return;
-    }
-
     try {
 
-        let idProductsOrdered = [];
-
         for (i = 0; i < products.length; i++) {
-
-            let quantity = products[i].quantity;
-
-            if (typeof (quantity) != "number" || parseInt(quantity) < 1) {
-                response.status(400).json({ msg: "Invalid quantity" });
-                return;
-            }
-            
-            for (j = 0; j < idProductsOrdered.length; j++) {
-
-                if (products[i].id == idProductsOrdered[j]) {
-                    response.status(400).json({ msg: "Each product can only be sent once per order" });
-                    return;
-                }
-            }
-
-            idProductsOrdered.push(products[i].id);
-            console.log(idProductsOrdered);
 
             let product = await queries.getOneProduct(products[i].id);
 
@@ -501,7 +376,6 @@ const postOrder = async (request, response, next) => {
                 response.status(404).json({ msg: "Product not found or unavailable, product_id: " + products[i].id });
                 return;
             }
-
 
             if (products[i].quantity > product.stock) {
                 response.status(409).json({ msg: "Not enough items in stock, product_id: " + product.id });
@@ -601,11 +475,6 @@ const patchOrderById = async (request, response, next) => {
     const id = request.params.id;
     const { status } = request.body;
 
-    if (status != "nuevo" && status != "confirmado" && status != "preparando" && status != "enviando" && status != "entregado" && status != "cancelado") {
-        response.status(400).json({ msg: "Ivalid order status" });
-        return;
-    }
-
     try {
 
         let update = await queries.updateOrderStatus(id, status);
@@ -661,29 +530,6 @@ const deleteOrderById = async (request, response, next) => {
         next(error);
     }
 }
-
-
-
-//---------------DATA VALIDATION---------------//
-
-const nameLastnamePattern = new RegExp("^(?=.*[A-Za-z])[a-zA-ZñÑáéíóúÁÉÍÓÚü ]{5,40}$");
-const addressPattern = new RegExp("^(?=.*[A-Za-z])[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚü ]{5,50}$");
-const usernamePattern = new RegExp("^[a-zA-Z0-9_-]{6,15}$");
-const emailPattern = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-const phonePattern = new RegExp("^[0-9]{2,4}[ ][0-9]{7,10}$");
-const passwordPattern = new RegExp("^(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9_-]{8,}$");
-const productNamePattern = new RegExp("^(?=.*[A-Za-z])[a-zA-ZñÑáéíóúÁÉÍÓÚü ]{3,30}$");
-const keywordPattern = new RegExp("^(?=.*[A-Za-z])[a-zA-Z_-]{3,10}$");
-const pricePattern = new RegExp("^[0-9]{2,}[.][0-9]{2}$");
-
-
-const checkValidData = (pattern, data) => {
-
-    let validData = pattern.test(data);
-    return validData;
-
-}
-
 
 
 module.exports = {

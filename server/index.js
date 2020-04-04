@@ -9,6 +9,9 @@ const middlewares = require('./middlewares.js');
 
 const validateUser = middlewares.validateUser;
 const validateAdmin = middlewares.validateAdmin;
+const validateBodyProducts = middlewares.validateBodyProducts;
+const validateBodyUsers = middlewares.validateBodyUsers;
+const validateBodyOrders = middlewares.validateBodyOrders;
 
 
 app.listen(3000, () => {
@@ -27,16 +30,16 @@ app.get('/products/:id', validateUser, routes.getProductById);
 
 //---------------ADMIN ONLY---------------//
 
-app.post('/products', validateUser, validateAdmin, routes.postProduct);
+app.post('/products', validateUser, validateAdmin, validateBodyProducts, routes.postProduct);
 
-app.patch('/products/:id', validateUser, validateAdmin, routes.patchProductById);
+app.patch('/products/:id', validateUser, validateAdmin, validateBodyProducts, routes.patchProductById);
 
 app.delete('/products/:id', validateUser, validateAdmin, routes.deleteProductById);
 
 
 //---------------------------------USERS---------------------------------//
 
-app.post('/users', routes.postUser);
+app.post('/users', validateBodyUsers, routes.postUser);
 
 //---------------LOGIN---------------//
 
@@ -46,13 +49,13 @@ app.post('/login', routes.postLogin);
 
 app.get('/users/me', validateUser, routes.getSameUser);
 
-app.patch('/users/me', validateUser, routes.patchSameUser);
+app.patch('/users/me', validateUser, validateBodyUsers, routes.patchSameUser);
 
 app.delete('/users/me', validateUser, routes.deleteSameUser);
 
 //---------------ADMIN ONLY---------------//
 
-app.post('/users/admin', validateUser, validateAdmin, routes.postAdmin);
+app.post('/users/admin', validateUser, validateAdmin, validateBodyUsers, routes.postAdmin);
 
 app.get('/users', validateUser, validateAdmin, routes.getUsers);
 
@@ -65,7 +68,7 @@ app.delete('/users/:id', validateUser, validateAdmin, routes.deleteUserById);
 
 //---------------SAME USER ONLY---------------//
 
-app.post('/orders', validateUser, routes.postOrder);
+app.post('/orders', validateUser, validateBodyOrders, routes.postOrder);
 
 app.get('/users/me/orders', validateUser, routes.getSameUserOrders);
 
@@ -77,7 +80,7 @@ app.get('/orders', validateUser, validateAdmin, routes.getOrders);
 
 app.get('/orders/:id', validateUser, validateAdmin, routes.getOrderById);
 
-app.patch('/orders/:id', validateUser, validateAdmin, routes.patchOrderById);
+app.patch('/orders/:id', validateUser, validateAdmin, validateBodyOrders, routes.patchOrderById);
 
 app.delete('/orders/:id', validateUser, validateAdmin, routes.deleteOrderById);
 
