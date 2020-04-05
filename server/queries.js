@@ -1,4 +1,3 @@
-
 const Sequelize = require('sequelize');
 
 const sequelize = new Sequelize("delilah_db", "root", "", {
@@ -11,7 +10,6 @@ const sequelize = new Sequelize("delilah_db", "root", "", {
 });
 
 
-
 //---------------PRODUCTS---------------//
 
 const createProduct = (name, keyword, price, photo_url, stock) => {
@@ -21,16 +19,16 @@ const createProduct = (name, keyword, price, photo_url, stock) => {
     ).then(data => {
         return data;
     });
-    // console.log(query);
+
     return query;
 }
+
 
 const getAllProducts = (admin) => {
 
     let queryString = "SELECT ";
 
     if (admin == "true") {
-
         queryString += "* FROM products WHERE status = 'active'";
     } else {
         queryString += "id, name, keyword, price, photo_url, stock FROM products WHERE status = 'active' AND stock > 0";
@@ -41,7 +39,7 @@ const getAllProducts = (admin) => {
     ).then(data => {
         return data;
     });
-    // console.log(query);
+
     return query;
 }
 
@@ -51,7 +49,6 @@ const getOneProduct = (id, admin) => {
     let queryString = "SELECT ";
 
     if (admin == "true") {
-
         queryString += "* FROM products WHERE status = 'active'";
     } else {
         queryString += "id, name, keyword, price, photo_url, stock FROM products WHERE status = 'active' AND stock > 0";
@@ -64,6 +61,7 @@ const getOneProduct = (id, admin) => {
     ).then(data => {
         return data[0];
     });
+
     return query;
 }
 
@@ -73,6 +71,8 @@ const updateProduct = (id, name, keyword, price, photo_url, stock) => {
     let queryString = "UPDATE products SET ";
     let replace = [];
     let firstClmn = true;
+
+    //check which table columns to update
 
     if (name != undefined) {
 
@@ -89,7 +89,6 @@ const updateProduct = (id, name, keyword, price, photo_url, stock) => {
             queryString += "keyword = ?";
             firstClmn = false;
         }
-
         replace.push(keyword);
     }
 
@@ -102,7 +101,6 @@ const updateProduct = (id, name, keyword, price, photo_url, stock) => {
             firstClmn = false;
         }
         replace.push(price);
-
     }
 
     if (photo_url != undefined) {
@@ -114,7 +112,6 @@ const updateProduct = (id, name, keyword, price, photo_url, stock) => {
             firstClmn = false;
         }
         replace.push(photo_url);
-
     }
 
     if (stock != undefined) {
@@ -126,7 +123,6 @@ const updateProduct = (id, name, keyword, price, photo_url, stock) => {
             firstClmn = false;
         }
         replace.push(stock);
-
     }
 
     queryString += " WHERE id = ?"
@@ -145,12 +141,14 @@ const updateProduct = (id, name, keyword, price, photo_url, stock) => {
 
 const deleteProduct = (id) => {
 
+    //check if there are orders with the product
     const query = sequelize.query("SELECT id FROM order_products WHERE product_id = ?",
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
     ).then(async (data) => {
        
         let queryString;
 
+        //soft-delete if orders exist
         if (data.length > 0) {
             queryString = "UPDATE products SET name = 'product_deleted_" + id + "', status = 'inactive' WHERE id = ?";
         } else {
@@ -164,22 +162,23 @@ const deleteProduct = (id) => {
         });
         return dlte;
     });
-    return query;
 
+    return query;
 }
 
+
 const checkProduct = (name, keyword, id) => {
+
+    //check if another product with the same name or keyword exists
 
     let productMatch = sequelize.query("SELECT name, keyword FROM products WHERE (name = ? OR keyword = ?) AND id != ?",
         { replacements: [name, keyword, id], type: sequelize.QueryTypes.SELECT }
     ).then(data => {
-        console.log(data);
+
         if (data.length > 0) {
 
             if (name == data[0].name) {
-
                 return "name";
-
             } else {
                 return "keyword";
             }
@@ -188,6 +187,7 @@ const checkProduct = (name, keyword, id) => {
             return false;
         }
     });
+
     return productMatch;
 }
 
@@ -201,15 +201,16 @@ const encryptPass = (pass) => {
     ).then(data => {
 
         let hash = Object.values(data[0])[0];
-        // console.log(hash);
-
         return hash;
     });
+
     return encrypted;
 }
 
 
 const checkUser = (user, email, id) => {
+
+    //check if another user with the same username or email exists
 
     let userMatch = sequelize.query("SELECT username, email FROM users WHERE (username = ? OR email = ?) AND id != ?",
         { replacements: [user, email, id], type: sequelize.QueryTypes.SELECT }
@@ -222,10 +223,12 @@ const checkUser = (user, email, id) => {
             } else {
                 return "Email";
             }
+
         } else {
             return false;
         }
     });
+
     return userMatch;
 }
 
@@ -251,6 +254,7 @@ const createUser = (name, username, email, password, admin, address, phone_numbe
         console.log(data);
         return data;
     });
+
     return query;
 }
 
@@ -262,6 +266,7 @@ const getAllUsers = () => {
     ).then(data => {
         return data;
     });
+
     return query;
 }
 
@@ -271,9 +276,9 @@ const getOneUser = (id) => {
     const query = sequelize.query("SELECT id, name, username, email, address, phone_number, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE status = 'active' AND id = ?",
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
     ).then(data => {
-        // console.log(data[0]);
         return data[0];
     });
+
     return query;
 }
 
@@ -282,8 +287,8 @@ const deleteUser = (id, type) => {
 
     let queryString;
 
+    //soft-delete if the user has orders
     if (type == 0) {
-
         queryString = "UPDATE users SET email = 'user_deleted_" + id + "', status = 'inactive' WHERE id = ?";
     } else {
         queryString = "DELETE FROM users WHERE id = ?";
@@ -294,6 +299,7 @@ const deleteUser = (id, type) => {
     ).then(data => {
         return data[0];
     });
+
     return query;
 }
 
@@ -569,7 +575,6 @@ const deleteOrder = (id) => {
     });
     return query;
 }
-
 
 
 module.exports = {

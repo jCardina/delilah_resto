@@ -41,8 +41,6 @@ app.delete('/products/:id', validateUser, validateAdmin, routes.deleteProductByI
 
 app.post('/users', validateBodyUsers, routes.postUser);
 
-//---------------LOGIN---------------//
-
 app.post('/login', routes.postLogin);
 
 //---------------SAME USER ONLY---------------//
@@ -83,7 +81,6 @@ app.get('/orders/:id', validateUser, validateAdmin, routes.getOrderById);
 app.patch('/orders/:id', validateUser, validateAdmin, validateBodyOrders, routes.patchOrderById);
 
 app.delete('/orders/:id', validateUser, validateAdmin, routes.deleteOrderById);
-
 
 
 //------------------------------SERVER ERRORS------------------------------//

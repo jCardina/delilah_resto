@@ -328,7 +328,7 @@ const deleteSameUser = async (request, response, next) => {
 
     try {
 
-        let userOrders = await queries.getAllOrders(5, 0, false, false, "false", id);
+        let userOrders = await queries.getAllOrders(5, 0, false, false, request.admin, id);
 
         let deleteType;
         
