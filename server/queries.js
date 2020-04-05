@@ -131,7 +131,7 @@ const updateProduct = (id, name, keyword, price, photo_url, stock) => {
     const query = sequelize.query(queryString,
         { replacements: replace }
     ).then(data => {
-        console.log(data);
+
         return data[0];
     });
 
@@ -145,7 +145,7 @@ const deleteProduct = (id) => {
     const query = sequelize.query("SELECT id FROM order_products WHERE product_id = ?",
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
     ).then(async (data) => {
-       
+
         let queryString;
 
         //soft-delete if orders exist
@@ -154,8 +154,8 @@ const deleteProduct = (id) => {
         } else {
             queryString = "DELETE FROM products WHERE id = ?";
         }
-        
-        const dlte = await sequelize.query( queryString,
+
+        const dlte = await sequelize.query(queryString,
             { replacements: [id] }
         ).then(data => {
             return data[0];
@@ -215,7 +215,7 @@ const checkUser = (user, email, id) => {
     let userMatch = sequelize.query("SELECT username, email FROM users WHERE (username = ? OR email = ?) AND id != ?",
         { replacements: [user, email, id], type: sequelize.QueryTypes.SELECT }
     ).then(data => {
-        console.log(data);
+
         if (data.length > 0) {
 
             if (user == data[0].username) {
@@ -238,7 +238,7 @@ const getLogData = (user, password) => {
     let query = sequelize.query("SELECT id, admin, IF(admin, 'true', 'false') AS admin FROM users WHERE ((username = ? AND password = ?) OR (email = ? AND password = ?)) AND status = 'active'",
         { replacements: [user, password, user, password], type: sequelize.QueryTypes.SELECT }
     ).then(data => {
-        console.log(data);
+
         return data;
     });
 
@@ -251,7 +251,7 @@ const createUser = (name, username, email, password, admin, address, phone_numbe
     const query = sequelize.query("INSERT INTO users (name, username, email, password, admin, address, phone_number) VALUES(?, ?, ?, ?, ?, ?, ?)",
         { replacements: [name, username, email, password, admin, address, phone_number] }
     ).then(data => {
-        console.log(data);
+
         return data;
     });
 
@@ -283,24 +283,31 @@ const getOneUser = (id) => {
 }
 
 
-const deleteUser = (id, type) => {
+const deleteUser = (id) => {
 
-    let queryString;
-
-    //soft-delete if the user has orders
-    if (type == 0) {
-        queryString = "UPDATE users SET email = 'user_deleted_" + id + "', status = 'inactive' WHERE id = ?";
-    } else {
-        queryString = "DELETE FROM users WHERE id = ?";
-    }
-
-    const query = sequelize.query( queryString,
-        { replacements: [id] }
+    //chek if the user has orders
+    const deleted = getAllOrders(5, 0, false, false, "false", id
     ).then(data => {
-        return data[0];
+
+        let queryString;
+
+        //soft-delete if the user has orders
+        if (data.length > 0) {
+            queryString = "UPDATE users SET email = 'user_deleted_" + id + "', status = 'inactive' WHERE id = ?";
+        } else {
+            queryString = "DELETE FROM users WHERE id = ?";
+        }
+
+        const query = sequelize.query(queryString,
+            { replacements: [id] }
+        ).then(data => {
+            return data[0];
+        });
+
+        return query;
     });
 
-    return query;
+    return deleted;
 }
 
 
@@ -309,6 +316,8 @@ const updateUser = (id, name, username, email, address, phone, password) => {
     let queryString = "UPDATE users SET ";
     let replace = [];
     let firstClmn = true;
+
+    //check which table columns to update
 
     if (name != undefined) {
 
@@ -379,7 +388,7 @@ const updateUser = (id, name, username, email, address, phone, password) => {
     const query = sequelize.query(queryString,
         { replacements: replace }
     ).then(data => {
-        console.log(data);
+
         return data[0];
     });
 
@@ -391,25 +400,23 @@ const updateUser = (id, name, username, email, address, phone, password) => {
 
 const createOrder = (user, products, total, paymentMethod) => {
 
-    console.log(products);
-
     const order = sequelize.query("INSERT INTO orders (user_id, total, payment_method, address) VALUES(?, ?, ?, ?)",
         { replacements: [user.id, total, paymentMethod, user.address] }
     ).then(async (data) => {
-        console.log(data);
 
         for (i = 0; i < products.length; i++) {
 
             await sequelize.query("INSERT INTO order_products (order_id, product_id, price, quantity) VALUES(?, ?, ?, ?)",
                 { replacements: [data[0], products[i].id, products[i].price, products[i].quantity] }
             ).then(info => {
-                console.log(info);
+
                 return info;
             });
         }
+
         return data[0];
     });
-    // console.log(query);
+
     return order;
 }
 
@@ -421,7 +428,7 @@ const updateStock = (product) => {
     const query = sequelize.query("UPDATE products SET stock = ? WHERE id = ?",
         { replacements: [updatedStock, product.id] }
     ).then(info => {
-        console.log(info);
+
         return info;
     });
 
@@ -442,10 +449,10 @@ const getOrderProducts = (id, moreDetails) => {
     let query = sequelize.query(queryString,
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
     ).then(data => {
-        // orders = data;
-        console.log(data);
+
         return data;
     });
+
     return query;
 }
 
@@ -463,10 +470,10 @@ const getOrderUserData = (id, moreDetails) => {
     let query = sequelize.query(queryString,
         { replacements: [id], type: sequelize.QueryTypes.SELECT }
     ).then(data => {
-        // orders = data;
-        console.log(data);
+
         return data[0];
     });
+
     return query;
 }
 
@@ -477,6 +484,7 @@ const getAllOrders = (limit, offset, date, status, admin, userId) => {
 
     let replace = [limit, offset];
 
+    //filter results if date or status are sent
     if (date && !status) {
         queryString += " WHERE DATE(timestamp) = ?";
         replace.unshift(date);
@@ -490,6 +498,7 @@ const getAllOrders = (limit, offset, date, status, admin, userId) => {
         replace.unshift(status);
     }
 
+    //if the user is not an admin return only that user's orders
     if (admin == 'false') {
         queryString += " WHERE user_id = ?";
         replace.unshift(userId);
@@ -509,6 +518,7 @@ const getAllOrders = (limit, offset, date, status, admin, userId) => {
             let products = await getOrderProducts(orders[i].id, false);
             orders[i].products = products;
         }
+
         return orders;
     });
 
@@ -521,10 +531,12 @@ const getOneOrder = (orderId, admin, userId) => {
     let query = sequelize.query("SELECT id, address, total, payment_method, status, timestamp FROM orders WHERE id = ?",
         { replacements: [orderId], type: sequelize.QueryTypes.SELECT }
     ).then(async (order) => {
+
         try {
 
             let user, products;
 
+            //if the user is not an admin check that the requested order is from that user
             if (admin == 'false') {
 
                 user = await getOrderUserData(orderId, false);
@@ -532,13 +544,13 @@ const getOneOrder = (orderId, admin, userId) => {
                 if (user.user_id != userId) {
                     return "forbidden";
                 }
-              
+
             } else {
-                user = await getOrderUserData(orderId, true); 
+                user = await getOrderUserData(orderId, true);
             }
 
             products = await getOrderProducts(orderId, true);
-            
+
             order[0].user = user;
             order[0].products = products;
 
@@ -561,13 +573,14 @@ const updateOrderStatus = (id, newStatus) => {
 
         return data;
     });
+
     return query;
 }
 
 
 const deleteOrder = (id) => {
 
-    let query = sequelize.query("DELETE o, op FROM orders o JOIN order_products op  ON o.id = op.order_id WHERE o.id = ?",
+    let query = sequelize.query("DELETE o, op FROM orders o JOIN order_products op ON o.id = op.order_id WHERE o.id = ?",
         { replacements: [id] }
     ).then(data => {
 

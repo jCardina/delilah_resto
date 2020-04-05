@@ -95,7 +95,7 @@ const deleteProductById = async (request, response, next) => {
     const id = request.params.id;
 
     try {
-        
+
         let data = await queries.deleteProduct(id);
 
         if (data.affectedRows == 0) {
@@ -238,17 +238,8 @@ const deleteUserById = async (request, response, next) => {
     }
 
     try {
-        let userOrders = await queries.getAllOrders(5, 0, false, false, "false", id);
 
-        let deleteType;
-        
-        if (userOrders.length > 0) {
-            deleteType = 0;
-        } else {
-            deleteType = 1;
-        }
-
-        let data = await queries.deleteUser(id, deleteType);
+        let data = await queries.deleteUser(id);
         console.log(data);
 
         if (data.affectedRows == 0) {
@@ -256,7 +247,7 @@ const deleteUserById = async (request, response, next) => {
         } else {
             response.status(204).send();
         }
-        
+
     } catch (error) {
         next(error);
     }
@@ -318,6 +309,7 @@ const patchSameUser = async (request, response, next) => {
 
 
 const deleteSameUser = async (request, response, next) => {
+    
     const id = request.userId;
 
     //prevent admin from deleting itself
@@ -328,17 +320,7 @@ const deleteSameUser = async (request, response, next) => {
 
     try {
 
-        let userOrders = await queries.getAllOrders(5, 0, false, false, request.admin, id);
-
-        let deleteType;
-        
-        if (userOrders.length > 0) {
-            deleteType = 0;
-        } else {
-            deleteType = 1;
-        }
-
-        let data = await queries.deleteUser(id, deleteType);
+        let data = await queries.deleteUser(id);
 
         if (data.affectedRows == 0) {
             response.status(404).json({ msg: "User not found" });

@@ -13,8 +13,6 @@ const validateUser = (request, response, next) => {
 
     let token = request.headers.authorization;
 
-    console.log(request.path);
-
     try {
         token = token.split(' ')[1];
 
@@ -23,7 +21,6 @@ const validateUser = (request, response, next) => {
         request.userId = verifyToken.id;
         request.admin = verifyToken.admin;
 
-        console.log(verifyToken);
         console.log(request.userId);
         console.log(request.admin);
 
@@ -36,6 +33,7 @@ const validateUser = (request, response, next) => {
 
 
 const validateAdmin = (request, response, next) => {
+
     if (request.admin == 'true') {
         next();
     } else {
@@ -78,6 +76,7 @@ const validateBodyProducts = (request, response, next) => {
 
     if (request.method == 'POST') {
 
+        //check that all required table columns are sent to create a product
         if (name == undefined || keyword == undefined || price == undefined || photo_url == undefined || stock == undefined) {
 
             response.status(400).send();
@@ -86,6 +85,7 @@ const validateBodyProducts = (request, response, next) => {
 
     } else {
 
+        //check that at least one table column is sent to update a product
         if (name == undefined && keyword == undefined && price == undefined && photo_url == undefined && stock == undefined) {
 
             response.status(400).send();
@@ -93,6 +93,7 @@ const validateBodyProducts = (request, response, next) => {
         }
     }
 
+    //check request.body information format
     for (i = 0; i < validations.length; i++) {
 
         let exp = new RegExp(validations[i].pattern);
@@ -107,7 +108,6 @@ const validateBodyProducts = (request, response, next) => {
     }
 
     next();
-
 }
 
 
@@ -151,6 +151,7 @@ const validateBodyUsers = (request, response, next) => {
 
     if (request.method == 'POST') {
 
+        //check that all required table columns are sent to create a user
         if (name == undefined || username == undefined || email == undefined || password == undefined) {
 
             response.status(400).send();
@@ -165,6 +166,7 @@ const validateBodyUsers = (request, response, next) => {
 
     } else {
 
+        //check that at least one table column is sent to update a user
         if (name == undefined && username == undefined && email == undefined && address == undefined && phone_number == undefined && password == undefined) {
 
             response.status(400).send();
@@ -172,7 +174,7 @@ const validateBodyUsers = (request, response, next) => {
         }
     }
 
-
+    //check request.body information format
     for (i = 0; i < validations.length; i++) {
 
         let exp = new RegExp(validations[i].pattern);
@@ -196,34 +198,37 @@ const validateBodyOrders = (request, response, next) => {
 
         const { status } = request.body;
 
+        //check that status is sent and valid to update an order
         if (status != "nuevo" && status != "confirmado" && status != "preparando" && status != "enviando" && status != "entregado" && status != "cancelado") {
 
-        response.status(400).json({ msg: "Order status missing or invalid. Valid options: 'nuevo', 'confirmado', 'preparando', 'enviando', 'entregado', 'cancelado'" });
-        return;
+            response.status(400).json({ msg: "Order status missing or invalid. Valid options: 'nuevo', 'confirmado', 'preparando', 'enviando', 'entregado', 'cancelado'" });
+            return;
 
         } else {
-           return next();
+            return next();
         }
     }
 
     let { products, payment_method } = request.body;
 
+    //check that products list is sent to create an order
     if (typeof (products) != "object" || products.length == undefined || products.length < 1) {
         response.status(400).json({ msg: "List of products missing" });
         return;
     }
 
+    //check that payment method is sent and valid to create an order
     if (payment_method != "efectivo" && payment_method != "tarjeta") {
         response.status(400).json({ msg: "Payment method missing or invalid. Valid options: 'efectivo', 'tarjeta'" });
         return;
     }
-    
+
     let idProductsOrdered = [];
-    
+
     for (i = 0; i < products.length; i++) {
 
         let validations = [
-            {   
+            {
                 property: products[i].id,
                 pattern: "^[0-9]{1,9}$",
                 msg: "Product id must be an integer between 1 and 9 digits, minimum value: 1"
@@ -235,20 +240,21 @@ const validateBodyOrders = (request, response, next) => {
             }
         ];
 
-        
+        //check format and content of each product object
         for (x = 0; x < validations.length; x++) {
 
             let exp = new RegExp(validations[x].pattern);
             let toCheck = validations[x].property;
-    
+
             let valid = exp.test(toCheck);
-    
+
             if (!valid || toCheck < 1) {
                 response.status(422).json({ msg: validations[x].msg });
                 return;
             }
         }
 
+        //check that there are no repeated prodcts
         for (j = 0; j < idProductsOrdered.length; j++) {
 
             if (products[i].id == idProductsOrdered[j]) {
@@ -258,7 +264,6 @@ const validateBodyOrders = (request, response, next) => {
         }
 
         idProductsOrdered.push(products[i].id);
-        // console.log(idProductsOrdered);
     }
 
     next();
