@@ -30,10 +30,13 @@ paths:
           description: "JSON array of products"
           content:
             application/json:
-              schema: 
-                type: array
-                items: 
-                  $ref: '#/components/schemas/productData'
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: 
+                      $ref: '#/components/schemas/productData'
         '401':
           $ref: '#/components/responses/invalidToken'
         '500':
@@ -72,7 +75,10 @@ paths:
           content:
             application/json:
               schema: 
-                $ref: '#/components/schemas/productData'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/productData'
         '400':
           description: "Request body incomplete or malformed"
         '401':
@@ -81,6 +87,8 @@ paths:
           $ref: '#/components/responses/forbidden'
         '409':
           description: "Product already exists"
+        '422':
+          $ref: '#/components/responses/invalid'
         '500':
           $ref: '#/components/responses/serverError'
           
@@ -105,7 +113,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/productData'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/productData'
         '401':
           $ref: '#/components/responses/invalidToken'
         '404':
@@ -116,7 +127,7 @@ paths:
     patch:
       tags:
         - "Products"
-      summary: Modifies a product by ID.
+      summary: Updates a product by ID.
       description: "Role required: Admin"
       security:
         - tokenAuthorization: []
@@ -149,11 +160,14 @@ paths:
                   minimum: 0
       responses: 
         '200':
-          description: Modified product
+          description: Product updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/productData'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/productData'
         '400':
           description: "At least one valid property is required"
         '401':
@@ -164,6 +178,8 @@ paths:
           description: "Product not found"
         '409':
           description: "Another product with the same name or keyword exists"
+        '422':
+          $ref: '#/components/responses/invalid'
         '500':
           $ref: '#/components/responses/serverError'
           
@@ -193,38 +209,34 @@ paths:
         '500':
           $ref: '#/components/responses/serverError'
     
-    
+  
   /users:
   
     get:
       tags:
         - "Users"
       summary: Returns a list of users.
+      description: "Role required: Admin"
       security:
         - tokenAuthorization: []
-      parameters:
-        - name: token
-          in: header
-          description: "Role required: Admin"
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: JSON array of users
           content:
             application/json:
               schema: 
-                type: array
-                items:
-                  $ref: '#/components/schemas/userData'
-                  
-        '400':
-          description: Bad request
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/userData'
         '401':
           $ref: '#/components/responses/invalidToken'
+        '403':
+          $ref: '#/components/responses/forbidden'
         '500':
-          description: Internal server error
+          $ref: '#/components/responses/serverError'
           
     post:
       tags:
@@ -239,33 +251,36 @@ paths:
               properties:
                 name:
                   type: string
-                userName:
+                  minLength: 5
+                  maxLength: 40
+                username:
                   type: string
                   minLength: 6
-                  maxLength: 18
+                  maxLength: 15
                 email:
                   type: string
                 address:
                   type: string
-                phoneNumber:
-                  type: number
+                phone_number:
+                  type: string
+                  minLength: 10
+                  maxLength: 15
+                  example: "11 23456789"
                 password:
                   type: string
-                  minLength: 6
+                  minLength: 8
+                  maxLength: 20
       responses: 
         '201':
-          description: User created
-          content:
-            application/json:
-              schema: 
-                $ref: '#/components/schemas/userData'
-                  
+          description: "User created"
         '400':
-          description: Bad request
+          description: "Request body incomplete or malformed"
         '409':
-          description: User already exists
+          description: "User already exists"
+        '422':
+          $ref: '#/components/responses/invalid'
         '500':
-          description: Internal server error
+          $ref: '#/components/responses/serverError'
           
           
   /users/admin:
@@ -276,13 +291,7 @@ paths:
       security:
         - tokenAuthorization: []
       summary: Creates an admin user.
-      parameters:
-        - name: token
-          in: header
-          description: "Role required: Admin"
-          required: true
-          schema:
-            type: string
+      description: "Role required: Admin"
       requestBody:
         required: true
         content:
@@ -292,45 +301,35 @@ paths:
               properties:
                 name:
                   type: string
-                userName:
+                  minLength: 5
+                  maxLength: 40
+                username:
                   type: string
                   minLength: 6
-                  maxLength: 18
+                  maxLength: 15
                 email:
                   type: string
                 password:
                   type: string
-                  minLength: 6
+                  minLength: 8
+                  maxLength: 20
       responses: 
         '201':
-          description: User created
-          content:
-            application/json:
-              schema: 
-                type: object
-                properties:
-                  id:
-                    type: number
-                  name:
-                    type: string
-                  userName:
-                    type: string
-                  email:
-                    type: string
-                  admin:
-                    type: boolean
-                    default: true
-                  
+          description: "User created"
         '400':
-          description: Bad request
+          description: "Request body incomplete or malformed"
         '401':
-          description: API key is missing or invalid
+          $ref: '#/components/responses/invalidToken'
+        '403':
+          $ref: '#/components/responses/forbidden'
         '409':
-          description: User already exists
+          description: "User already exists"
+        '422':
+          $ref: '#/components/responses/invalid'
         '500':
-          description: Internal server error
+          $ref: '#/components/responses/serverError'
         
-          
+        
   /login:
     
     post:
@@ -352,29 +351,28 @@ paths:
                   
       responses: 
         '200':
-          description: Login successful
+          description: "Login successful"
           content:
             application/json:
               schema: 
                 type: object
-                properties: #revisar
+                properties:
                   token:
                     type: string
-                  userId:
-                    type: number
-                  
         '400':
-          description: Bad request / wrong user or password
+          description: "Request body incomplete or malformed"
+        '401':
+          description: "Wrong user or password"
         '500':
-          description: Internal server error
+          $ref: '#/components/responses/serverError'
           
-                  
+          
   /users/{userId}:
     get:
       tags:
         - "Users"
       summary: Returns a user by ID.
-      #description: "This can only be done by the logged in user."
+      description: "Role required: Admin"
       security:
         - tokenAuthorization: []
       parameters:
@@ -383,36 +381,32 @@ paths:
           required: true
           schema:
             type : integer
-            format: int64
             minimum: 1
-        - name: token
-          in: header
-          description: "Role required: Admin"
-          required: true
-          schema:
-            type: string
       responses: 
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/userData'
-        '400':
-          description: Bad request
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/userData'
         '401':
           $ref: '#/components/responses/invalidToken'
+        '403':
+          $ref: '#/components/responses/forbidden'
         '404':
-          description: User not found
+          description: "User not found"
         '500':
-          description: Internal server error
+          $ref: '#/components/responses/serverError'
           
           
     delete:
       tags:
         - "Users"
       summary: Deletes a user by ID.
-      #description: "This can only be done by the logged in user."
+      description: "Role required: Admin"
       security:
         - tokenAuthorization: []
       parameters:
@@ -423,23 +417,17 @@ paths:
             type : integer
             format: int64
             minimum: 1
-        - name: token
-          in: header
-          description: "Role required: Admin"
-          required: true
-          schema:
-            type: string
       responses: 
         '204':
-          description: User deleted
-        '400':
-          description: Bad request
+          description: "User deleted"
         '401':
           $ref: '#/components/responses/invalidToken'
+        '403':
+          $ref: '#/components/responses/forbidden'
         '404':
-          description: User not found
+          description: "User not found"
         '500':
-          description: Internal server error
+          $ref: '#/components/responses/serverError'
           
   /users/me:
   
@@ -447,59 +435,32 @@ paths:
       tags:
         - "Users"
       summary: Returns the logged in user.
-      #description: "This can only be done by the logged in user."
       security:
         - tokenAuthorization: []
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type : integer
-            format: int64
-            minimum: 1
-        - name: token
-          in: header
-          required: true
-          schema:
-            type: string
       responses: 
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/userData'
-        '400':
-          description: Bad request
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/userData'
         '401':
           $ref: '#/components/responses/invalidToken'
         '404':
-          description: User not found
+          description: "User not found"
         '500':
-          description: Internal server error
+          $ref: '#/components/responses/serverError'
     
     
     patch:
       tags:
         - "Users"
-      summary: Modifies logged in user.
-      #description: "This can only be done by the logged in user."
+      summary: Updates logged in user.
       security:
         - tokenAuthorization: []
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type : integer
-            format: int64
-            minimum: 1
-        - name: token
-          in: header
-          required: true
-          schema:
-            type: string
       requestBody:
         required: true
         content:
@@ -509,115 +470,130 @@ paths:
               properties:
                 name:
                   type: string
-                userName:
+                  minLength: 5
+                  maxLength: 40
+                username:
                   type: string
                   minLength: 6
-                  maxLength: 18
+                  maxLength: 15
                 email:
                   type: string
                 address:
                   type: string
-                phoneNumber:
-                  type: number
+                phone_number:
+                  type: string
+                  minLength: 10
+                  maxLength: 15
+                  example: "11 23456789"
                 password:
                   type: string
-                  minLength: 6
+                  minLength: 8
+                  maxLength: 20
       responses: 
         '200':
-          description: Modified user
+          description: "User updated"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/userData'
+                type: object
+                properties:
+                  data:  
+                    $ref: '#/components/schemas/userData'
         '400':
-          description: Bad request
+          description: "At least one valid property is required"
         '401':
           $ref: '#/components/responses/invalidToken'
         '404':
-          description: User not found
+          description: "User not found"
+        '409':
+          description: "Another user with the same username or email exists"
+        '422':
+          $ref: '#/components/responses/invalid'
         '500':
-          description: Internal server error
+          $ref: '#/components/responses/serverError'
           
     delete:
       tags:
         - "Users"
       summary: Deletes logged in user.
-      #description: "This can only be done by the logged in user."
       security:
         - tokenAuthorization: []
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type : integer
-            format: int64
-            minimum: 1
-        - name: token
-          in: header
-          description: "Role required: Admin"
-          required: true
-          schema:
-            type: string
       responses: 
         '204':
-          description: User deleted
-        '400':
-          description: Bad request
+          description: "User deleted"
         '401':
           $ref: '#/components/responses/invalidToken'
+        '403':
+          $ref: '#/components/responses/forbidden'
         '404':
-          description: User not found
+          description: "User not found"
         '500':
-          description: Internal server error
+          $ref: '#/components/responses/serverError'
 
-    
-          
+
   /users/me/orders:
     get:
       tags:
         - "Orders"
       summary: Returns a list of orders of the logged in user.
-      #description: "This can only be done by the logged in user."
       security:
         - tokenAuthorization: []
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type : integer
-            format: int64
-            minimum: 1
-        - name: token
-          in: header
-          required: true
-          schema:
-            type: string
       responses: 
         '200':
           description: JSON array of orders
           content:
             application/json:
-              schema: 
-                type: array
-                items:
-                  $ref: '#/components/schemas/orderData'
-    
-        '400':
-          description: Bad request
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/orderDataUser'
         '401':
           $ref: '#/components/responses/invalidToken'
         '404':
-          description: User not found
+          description: "No orders"
         '500':
-          description: Internal server error
-   
+          $ref: '#/components/responses/serverError'
           
-          
+  /users/me/orders/{orderId}:
+    get:
+      tags:
+        - "Orders"
+      summary: Returns a list of orders of the logged in user.
+      security:
+        - tokenAuthorization: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses: 
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/orderDataUserExt'
+        '401':
+          $ref: '#/components/responses/invalidToken'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          description: "Order not found"
+        '500':
+          $ref: '#/components/responses/serverError'
+  
+
   /orders:
   
-    get: #que tiene que devolver?
+    get:
       tags:
         - "Orders"
       summary: Returns a list of orders.
@@ -650,7 +626,7 @@ paths:
               schema: 
                 type: array
                 items:
-                  $ref: '#/components/schemas/orderData'
+                  $ref: '#/components/schemas/orderDataUser'
                   
         '400':
           description: Bad request
@@ -679,7 +655,7 @@ paths:
             schema:
               type: object
               properties:
-                products: #revisar
+                products:
                   type: array
                   items:
                     type: object
@@ -703,7 +679,7 @@ paths:
           content:
             application/json:
               schema: 
-                $ref: '#/components/schemas/orderData'
+                $ref: '#/components/schemas/orderDataUser'
         '400':
           description: Bad request
         '401':
@@ -713,7 +689,7 @@ paths:
           
   /orders/{orderId}:
   
-    get: #hace falta? admin o user o ambos?
+    get:
       tags:
         - "Orders"
       summary: Returns an order by ID.
@@ -740,7 +716,7 @@ paths:
           content:
             application/json:
               schema: 
-                $ref: '#/components/schemas/orderData'
+                $ref: '#/components/schemas/orderDataUser'
         '400':
           description: Bad request
         '401':
@@ -754,7 +730,7 @@ paths:
     patch:
       tags:
         - "Orders"
-      summary: Modifies order status by ID.
+      summary: Updates order status by ID.
       security:
         - tokenAuthorization: []
       parameters:
@@ -800,7 +776,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/orderData'
+                $ref: '#/components/schemas/orderDataUser'
         '400':
           description: Bad request
         '401':
@@ -849,93 +825,125 @@ components:
   schemas:
   
     productData:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        keyword:
-          type: string
-        price:
-          type: number
-        photo_url:
-          type: string
-        stock:
-          type: integer
+        type: object
+        properties:
+          id:
+            type: integer
+          name:
+            type: string
+          keyword:
+            type: string
+          price:
+            type: number
+          photo_url:
+            type: string
+          stock:
+            type: integer
   
     userData:
       type: object
       properties:
         id:
-          type: number
+          type: integer
         name:
           type: string
-        userName:
+        username:
           type: string
         email:
           type: string
         address:
           type: string
-        phoneNumber:
-          type: number
+        phone_number:
+          type: string
+          example: "11 23456789"
         admin:
           type: boolean
           default: false
 
-    orderData:
+    orderDataUser:
       type: object
       properties:
-        orderId:
+        id:
+          type: integer
+        address:
+          type: string
+        total:
           type: number
-        products: #revisar
+          format: double
+        payment_method:
+          type: string
+        status:
+          type: string
+        time:
+          type: string
+          example: "16:04:05"
+        date:
+          type: string
+          format: date
+        user:
+          type: object
+          properties:
+            user_id:
+              type: integer
+            name_lastname:
+              type: string
+        products:
           type: array
           items:
             type: object
             properties:
-              id:
-                type: number
-             # name:
-              #  type: string
-              #keyword:
-               # type: string
-              #price:
-               # type: number
+              product_id:
+                type: integer
+              keyword:
+                type: string
               quantity:
                 type: integer
-                format: int64
-                minimum: 1
-              #photoUrl:
-               # type: string
+                
+    orderDataUserExt:
+      type: object
+      properties:
+        id:
+          type: integer
+        address:
+          type: string
         total:
           type: number
-        userId:
-          type: number
-        #user: #revisar
-          #type: object
-          #properties:
-            #id:
-             # type: number
-            #name:
-             # type: string
-            #userName:
-             # type: string
-            #email:
-             # type: string
-            #address:
-             # type: string
-            #phoneNumber:
-             # type: number
-        paymentMethod:
-          type: string
-        timeStamp:
-          type: string
-        date:
+          format: double
+        payment_method:
           type: string
         status:
           type: string
+        timestamp:
+          type: string
+          example: "2020-01-14 16:04:05"
+        user:
+          type: object
+          properties:
+            user_id:
+              type: integer
+            name_lastname:
+              type: string
+        products:
+          type: array
+          items:
+            type: object
+            properties:
+              product_id:
+                type: integer
+              keyword:
+                type: string
+              quantity:
+                type: integer
+              product_name:
+                type: string
+              price:
+                type: number
+                format: double
+              photo_url:
+                type: string
+                
+         
 
-        
           
   securitySchemes:
     tokenAuthorization:
@@ -950,6 +958,8 @@ components:
       description: "Unexpected error"
     forbidden:
       description: "Not allowed"
+    invalid:
+      description: "Invalid property value"
       
     
           

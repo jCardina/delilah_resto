@@ -1,4 +1,3 @@
-
 const jwt = require('jsonwebtoken');
 const signature = "token_Generator_3402921GtFDnL";
 
@@ -143,7 +142,7 @@ const validateBodyUsers = (request, response, next) => {
         },
         {
             property: password,
-            pattern: "^(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9_-]{8,}$",
+            pattern: "^(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9_-]{8,20}$",
             msg: "Pasword must be at least 8 characters, at least one letter and one number; Special characters allowed: '-', '_'"
         }
     ];
@@ -254,7 +253,7 @@ const validateBodyOrders = (request, response, next) => {
             }
         }
 
-        //check that there are no repeated prodcts
+        //check that there are no repeated products
         for (j = 0; j < idProductsOrdered.length; j++) {
 
             if (products[i].id == idProductsOrdered[j]) {
@@ -279,4 +278,3 @@ module.exports = {
     validateBodyUsers: validateBodyUsers,
     validateBodyOrders: validateBodyOrders
 }
-

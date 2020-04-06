@@ -1,4 +1,3 @@
-
 const jwt = require('jsonwebtoken');
 const signature = require('./middlewares.js').signature;
 
@@ -11,10 +10,12 @@ const checkUser = queries.checkUser;
 //---------------PRODUCTS---------------//
 
 const postProduct = async (request, response, next) => {
+
     let { name, keyword, price, photo_url, stock } = request.body;
 
     try {
 
+        //check if nother product with the same name or keyword exists
         let checkTable = await queries.checkProduct(name, keyword, 0);
 
         if (checkTable) {
@@ -24,7 +25,6 @@ const postProduct = async (request, response, next) => {
 
         let post = await queries.createProduct(name, keyword, price, photo_url, stock);
         let newProduct = await queries.getOneProduct(post[0]);
-        console.log(post);
 
         response.status(201).json({ data: newProduct });
 
@@ -37,19 +37,22 @@ const postProduct = async (request, response, next) => {
 const getProducts = async (request, response, next) => {
 
     try {
+
         let data = await queries.getAllProducts(request.admin);
         response.json({ data: data });
+
     } catch (error) {
         next(error);
     }
-
 }
 
 
 const getProductById = async (request, response, next) => {
+
     const id = request.params.id;
 
     try {
+
         let data = await queries.getOneProduct(id, request.admin);
 
         if (!data) {
@@ -57,6 +60,7 @@ const getProductById = async (request, response, next) => {
         } else {
             response.json({ data: data });
         }
+
     } catch (error) {
         next(error);
     }
@@ -64,6 +68,7 @@ const getProductById = async (request, response, next) => {
 
 
 const patchProductById = async (request, response, next) => {
+
     const id = request.params.id;
     let { name, keyword, price, photo_url, stock } = request.body;
 
@@ -92,6 +97,7 @@ const patchProductById = async (request, response, next) => {
 
 
 const deleteProductById = async (request, response, next) => {
+
     const id = request.params.id;
 
     try {
@@ -113,9 +119,9 @@ const deleteProductById = async (request, response, next) => {
 
 const postLogin = async (request, response, next) => {
 
-    // console.log(request.body);
     let { user, password } = request.body;
 
+    //check that both user and password were sent
     if (user == undefined || password == undefined) {
         response.status(400).send();
         return;
@@ -124,11 +130,12 @@ const postLogin = async (request, response, next) => {
     let logData;
 
     try {
+
         password = await encryptPass(password);
 
-        console.log(password);
-
+        //search database for matching credentials
         logData = await queries.getLogData(user, password);
+
     } catch (error) {
         return next(error);
     }
@@ -136,11 +143,10 @@ const postLogin = async (request, response, next) => {
     try {
 
         let userInfo = { id: logData[0].id, admin: logData[0].admin };
-        console.log(userInfo);
-        console.log(signature);
         let token = jwt.sign(userInfo, signature);
 
         response.status(200).json({ token: token });
+
     } catch {
         response.status(401).json({ msg: 'Wrong user or password' });
     }
@@ -148,11 +154,13 @@ const postLogin = async (request, response, next) => {
 
 
 const postUser = async (request, response, next) => {
+
     let { name, username, email, address, phone_number, password } = request.body;
 
     try {
+
+        //check if another user with the same username or email exists
         let checkUpUser = await checkUser(username, email, 0);
-        console.log(checkUpUser);
 
         if (checkUpUser) {
             response.status(409).json({ msg: checkUpUser + " already registered" });
@@ -161,11 +169,13 @@ const postUser = async (request, response, next) => {
 
         password = await encryptPass(password);
 
+        //set admin = false
         let admin = 0;
 
         let create = await queries.createUser(name, username, email, password, admin, address, phone_number);
 
         response.status(201).json({ msg: "User created" });
+
     } catch (error) {
         next(error);
     }
@@ -173,12 +183,13 @@ const postUser = async (request, response, next) => {
 
 
 const postAdmin = async (request, response, next) => {
+
     let { name, username, email, password } = request.body;
 
     try {
 
+        //check if another user with the same username or email exists
         let checkUpUser = await checkUser(username, email, 0);
-        console.log(checkUpUser);
 
         if (checkUpUser) {
             response.status(409).json({ msg: checkUpUser + " already registered" });
@@ -187,6 +198,7 @@ const postAdmin = async (request, response, next) => {
 
         password = await encryptPass(password);
 
+        //set admin = true
         let admin = 1;
 
         let create = await queries.createUser(name, username, email, password, admin);
@@ -202,8 +214,10 @@ const postAdmin = async (request, response, next) => {
 const getUsers = async (request, response, next) => {
 
     try {
+
         let data = await queries.getAllUsers();
         response.json({ data: data });
+
     } catch (error) {
         next(error);
     }
@@ -212,9 +226,10 @@ const getUsers = async (request, response, next) => {
 
 const getUserById = async (request, response, next) => {
 
-    const id = request.params.id;
+    let id = request.params.id;
 
     try {
+
         let data = await queries.getOneUser(id);
 
         if (!data) {
@@ -222,6 +237,7 @@ const getUserById = async (request, response, next) => {
         } else {
             response.json({ data: data });
         }
+
     } catch (error) {
         next(error);
     }
@@ -240,7 +256,6 @@ const deleteUserById = async (request, response, next) => {
     try {
 
         let data = await queries.deleteUser(id);
-        console.log(data);
 
         if (data.affectedRows == 0) {
             response.status(404).json({ msg: "User not found" });
@@ -276,6 +291,8 @@ const patchSameUser = async (request, response, next) => {
     let { name, username, email, address, phone_number, password } = request.body;
 
     try {
+
+        //if username or email are sent, check that there are no users with the same username or email
         if (username != undefined || email != undefined) {
 
             let checkUpUser = await checkUser(username, email, id);
@@ -294,7 +311,6 @@ const patchSameUser = async (request, response, next) => {
         let update = await queries.updateUser(id, name, username, email, address, phone_number, password);
 
         let updatedData = await queries.getOneUser(id);
-        // console.log(updatedInfo);
 
         if (!updatedData) {
             response.status(404).json({ msg: "User not found" });
@@ -309,7 +325,7 @@ const patchSameUser = async (request, response, next) => {
 
 
 const deleteSameUser = async (request, response, next) => {
-    
+
     const id = request.userId;
 
     //prevent admin from deleting itself
@@ -337,6 +353,7 @@ const deleteSameUser = async (request, response, next) => {
 
 const postOrder = async (request, response, next) => {
 
+    //prevent admin users from creating orders
     if (request.admin == 'true') {
         response.status(403).send();
         return;
@@ -350,6 +367,7 @@ const postOrder = async (request, response, next) => {
 
     try {
 
+        //check that all requested products are available and that there is enough of each one in stock
         for (i = 0; i < products.length; i++) {
 
             let product = await queries.getOneProduct(products[i].id);
@@ -369,21 +387,20 @@ const postOrder = async (request, response, next) => {
 
             let partial = product.price * products[i].quantity;
             total += partial;
-            // console.log(partial);
         }
 
-        console.log(total);
-
+        //update stock of all products
         for (i = 0; i < products.length; i++) {
 
             await queries.updateStock(products[i]);
         }
 
+        //get order address
         let userInfo = await queries.getOneUser(user.id);
         user.address = userInfo.address;
 
         let newOrder = await queries.createOrder(user, products, total, payment_method);
-        // console.log(newOrder);
+
         response.status(201).json({ order_id: newOrder });
 
     } catch (error) {
@@ -396,6 +413,7 @@ const getOrders = async (request, response, next) => {
 
     let { limit, offset, date, status } = request.query;
 
+    //check if valid limit number is requested, otherwise the default is 30
     if (limit != undefined && !isNaN(limit)) {
 
         limit = parseInt(limit);
@@ -403,6 +421,7 @@ const getOrders = async (request, response, next) => {
         limit = 30;
     }
 
+    //check if valid offset number is requested, otherwise the default is 0
     if (offset != undefined && !isNaN(offset)) {
 
         offset = parseInt(offset);
@@ -410,6 +429,7 @@ const getOrders = async (request, response, next) => {
         offset = 0;
     }
 
+    //check if valid date is requested, otherwise all orders are returned
     const pattern = new RegExp("^[0-9]{4}[-][0-9]{2}[-][0-9]{2}$");
     const checkDate = pattern.test(date);
 
@@ -417,11 +437,13 @@ const getOrders = async (request, response, next) => {
         date = false;
     }
 
+    //check if valid order status is requested, otherwise all orders are returned
     if (status != "nuevo" && status != "confirmado" && status != "preparando" && status != "enviando" && status != "entregado" && status != "cancelado") {
         status = false;
     }
 
     try {
+
         let orders = await queries.getAllOrders(limit, offset, date, status, request.admin);
         response.json({ data: orders });
 
@@ -437,13 +459,16 @@ const getOrderById = async (request, response, next) => {
     let order;
 
     try {
+
         order = await queries.getOneOrder(orderId, request.admin, request.userId);
+
     } catch (error) {
         return next(error);
     }
 
     if (!order) {
         response.status(404).json({ msg: "Order not found" });
+
     } else if (order == 'forbidden') {
         response.status(403).json({ msg: "Forbidden" });
 
@@ -454,20 +479,23 @@ const getOrderById = async (request, response, next) => {
 
 
 const patchOrderById = async (request, response, next) => {
+
     const id = request.params.id;
     const { status } = request.body;
 
     try {
 
-        let update = await queries.updateOrderStatus(id, status);
-        // console.log(update);
-        let updatedOrder = await queries.getOneOrder(id);
+        let orderToUpdate = await queries.getOneOrder(id);
 
-        if (!updatedOrder) {
+        if (!orderToUpdate) {
             response.status(404).json({ msg: "Order not found" });
-        } else {
-            response.json({ order_id: id, new_status: status });
+            return;
         }
+
+        let update = await queries.updateOrderStatus(id, status);
+
+        response.json({ msg: "Order updated" });
+
     } catch (error) {
         next(error);
     }
@@ -485,6 +513,7 @@ const getSameUserOrders = async (request, response, next) => {
     }
 
     try {
+        
         let userOrders = await queries.getAllOrders(30, 0, false, false, admin, id);
         response.json({ data: userOrders });
 
