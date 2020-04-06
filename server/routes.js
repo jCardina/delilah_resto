@@ -414,7 +414,7 @@ const getOrders = async (request, response, next) => {
     let { limit, offset, date, status } = request.query;
 
     //check if valid limit number is requested, otherwise the default is 30
-    if (limit != undefined && !isNaN(limit)) {
+    if (limit != undefined && !isNaN(limit) && limit >= 1) {
 
         limit = parseInt(limit);
     } else {
@@ -422,7 +422,7 @@ const getOrders = async (request, response, next) => {
     }
 
     //check if valid offset number is requested, otherwise the default is 0
-    if (offset != undefined && !isNaN(offset)) {
+    if (offset != undefined && !isNaN(offset) && offset >= 0) {
 
         offset = parseInt(offset);
     } else {
