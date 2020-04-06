@@ -434,7 +434,7 @@ paths:
     get:
       tags:
         - "Users"
-      summary: Returns the logged in user.
+      summary: Returns the logged-in user.
       security:
         - tokenAuthorization: []
       responses: 
@@ -458,7 +458,7 @@ paths:
     patch:
       tags:
         - "Users"
-      summary: Updates logged in user.
+      summary: Updates logged-in user.
       security:
         - tokenAuthorization: []
       requestBody:
@@ -515,7 +515,7 @@ paths:
     delete:
       tags:
         - "Users"
-      summary: Deletes logged in user.
+      summary: Deletes logged-in user.
       security:
         - tokenAuthorization: []
       responses: 
@@ -535,7 +535,7 @@ paths:
     get:
       tags:
         - "Orders"
-      summary: Returns a list of orders of the logged in user.
+      summary: Returns a list of a logged-in user's orders.
       security:
         - tokenAuthorization: []
       responses: 
@@ -549,7 +549,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/orderDataUser'
+                      $ref: '#/components/schemas/orderData'
         '401':
           $ref: '#/components/responses/invalidToken'
         '404':
@@ -561,7 +561,7 @@ paths:
     get:
       tags:
         - "Orders"
-      summary: Returns a list of orders of the logged in user.
+      summary: Returns a logged-in user's order by ID.
       security:
         - tokenAuthorization: []
       parameters:
@@ -597,15 +597,28 @@ paths:
       tags:
         - "Orders"
       summary: Returns a list of orders.
+      description: "Role required: Admin"
       security:
         - tokenAuthorization: []
       parameters:
-        - name: token
-          in: header
-          description: "Role required: Admin"
-          required: true
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+        - name: date
+          in: query
+          required: false
           schema:
             type: string
+            format: date
         - name: status
           in: query
           required: false
@@ -626,14 +639,13 @@ paths:
               schema: 
                 type: array
                 items:
-                  $ref: '#/components/schemas/orderDataUser'
-                  
-        '400':
-          description: Bad request
+                  $ref: '#/components/schemas/orderData'
         '401':
           $ref: '#/components/responses/invalidToken'
+        '403':
+          $ref: '#/components/responses/forbidden'
         '500':
-          description: Internal server error
+          $ref: '#/components/responses/serverError'
           
     post:
       tags:
@@ -860,7 +872,7 @@ components:
           type: boolean
           default: false
 
-    orderDataUser:
+    orderData:
       type: object
       properties:
         id:
@@ -872,6 +884,9 @@ components:
           format: double
         payment_method:
           type: string
+          enum:
+            - efectivo
+            - tajerta
         status:
           type: string
         time:
@@ -911,6 +926,9 @@ components:
           format: double
         payment_method:
           type: string
+          enum:
+            - efectivo
+            - tajerta
         status:
           type: string
         timestamp:
