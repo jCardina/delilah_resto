@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 02, 2020 at 11:49 PM
+-- Generation Time: Apr 07, 2020 at 06:52 AM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.2
 
@@ -64,7 +64,7 @@ CREATE TABLE `products` (
   `keyword` varchar(60) COLLATE utf8_unicode_ci NOT NULL,
   `price` double UNSIGNED NOT NULL,
   `photo_url` varchar(300) COLLATE utf8_unicode_ci NOT NULL,
-  `stock` int(11) UNSIGNED NOT NULL,
+  `stock` int(10) UNSIGNED NOT NULL,
   `status` varchar(60) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'active'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -85,6 +85,13 @@ CREATE TABLE `users` (
   `admin` tinyint(1) NOT NULL,
   `status` varchar(10) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'active'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id`, `name`, `username`, `email`, `address`, `phone_number`, `password`, `admin`, `status`) VALUES
+(1, 'Admin User', 'admin_1', 'admin@email.com', NULL, NULL, '3df812ad8abdf5fa1551f4884e1b37dc', 1, 'active');
 
 --
 -- Indexes for dumped tables
@@ -115,7 +122,8 @@ ALTER TABLE `products`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `user_name` (`username`,`email`);
+  ADD UNIQUE KEY `username` (`username`) USING BTREE,
+  ADD UNIQUE KEY `email` (`email`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -143,7 +151,7 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
