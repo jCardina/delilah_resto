@@ -33,7 +33,7 @@ CREATE TABLE `orders` (
   `user_id` int(10) UNSIGNED NOT NULL,
   `total` double UNSIGNED NOT NULL,
   `payment_method` varchar(20) NOT NULL,
-  `address` varchar(60) NOT NULL,
+  `address` varchar(100) NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp(),
   `status` varchar(20) NOT NULL DEFAULT 'nuevo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
