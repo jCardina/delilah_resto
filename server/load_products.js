@@ -24,7 +24,7 @@ const validate = (name, keyword, price, photo_url, stock, row) => {
         },
         {
             property: photo_url,
-            pattern: "^(http(s)?://|www[.])[a-zA-Z0-9\\.\\-_]{2,50}[.][a-z]{2,3}([.][a-z]{2,3})?([/][a-zA-Z0-9%/_\\&\\#\\-\\.\\?\\!\\+\\=]{1,})?$",
+            pattern: "^(http(s)?://|www[.])[a-zA-Z0-9\\.\\-_]{2,50}[.][a-z]{2,3}([.][a-z]{2,3})?([/][a-zA-Z0-9%/_\\&\\#\\-\\.\\?\\!\\+\\=]{1,230})?$",
             msg: "Invalid URL format"
         },
         {
