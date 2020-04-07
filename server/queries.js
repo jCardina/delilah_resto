@@ -526,7 +526,13 @@ const getAllOrders = (limit, offset, date, status, admin, userId) => {
 }
 
 
-const getOneOrder = (orderId, admin, userId) => {
+const getOneOrder = (orderId, admin, userId, path) => {
+
+    const mePath = "/users/me/orders";
+
+    if (admin == 'true' && path.substr(0, mePath.length) == mePath) {
+        return false;
+    }
 
     let query = sequelize.query("SELECT id, address, total, payment_method, status, timestamp FROM orders WHERE id = ?",
         { replacements: [orderId], type: sequelize.QueryTypes.SELECT }
