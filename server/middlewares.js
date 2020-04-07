@@ -60,7 +60,7 @@ const validateBodyProducts = (request, response, next) => {
         },
         {
             property: photo_url,
-            pattern: "^(http(s)?://|www[.])[a-zA-Z0-9\\.\\-_]{2,50}[.][a-z]{2,3}([.][a-z]{2,3})?([/][a-zA-Z0-9%/_\\&\\#\\-\\.\\?\\!\\+\\=]{1,})?$",
+            pattern: "^(http(s)?://|www[.])[a-zA-Z0-9\\.\\-_]{2,50}[.][a-z]{2,3}([.][a-z]{2,3})?([/][a-zA-Z0-9%/_\\&\\#\\-\\.\\?\\!\\+\\=]{1,230})?$",
             msg: "Invalid URL format"
         },
         {
@@ -129,8 +129,8 @@ const validateBodyUsers = (request, response, next) => {
         },
         {
             property: address,
-            pattern: "^(?=.*[A-Za-z])[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚü ]{5,50}$",
-            msg: "Address must contain between 5 and 50 characters, at least one letter, numbers allowed; Special characters allowed: spaces, '´' accented vowels, 'ñ'"
+            pattern: "^(?=.*[A-Za-z])[a-zA-Z0-9ñÑáéíóúÁÉÍÓÚü\\, ]{5,100}$",
+            msg: "Address must contain between 5 and 50 characters, at least one letter, numbers allowed; Special characters allowed: spaces, coma, '´' accented vowels, 'ñ'"
         },
         {
             property: phone_number,
