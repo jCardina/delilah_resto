@@ -20,9 +20,6 @@ const validateUser = (request, response, next) => {
         request.userId = verifyToken.id;
         request.admin = verifyToken.admin;
 
-        console.log(request.userId);
-        console.log(request.admin);
-
         next();
 
     } catch (error) {
@@ -63,7 +60,7 @@ const validateBodyProducts = (request, response, next) => {
         },
         {
             property: photo_url,
-            pattern: "^(http(s)?://|www[.])[a-zA-Z0-9\\.\\-_]{2,30}[.][a-z]{2,3}([.][a-z]{2,3})?([/][a-zA-Z0-9%/_\\&\\#\\-\\.\\?\\!\\+\\=\\,]{1,})?$",
+            pattern: "^(http(s)?://|www[.])[a-zA-Z0-9\\.\\-_]{2,50}[.][a-z]{2,3}([.][a-z]{2,3})?([/][a-zA-Z0-9%/_\\&\\#\\-\\.\\?\\!\\+\\=]{1,})?$",
             msg: "Invalid URL format"
         },
         {
@@ -143,7 +140,7 @@ const validateBodyUsers = (request, response, next) => {
         {
             property: password,
             pattern: "^(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9_-]{8,20}$",
-            msg: "Pasword must be at least 8 characters, at least one letter and one number; Special characters allowed: '-', '_'"
+            msg: "Pasword must be between 8 and 20 characters, at least one letter and one number; Special characters allowed: '-', '_'"
         }
     ];
 
