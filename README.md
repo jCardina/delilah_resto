@@ -23,7 +23,7 @@ npm install
 ### Database configuration
 
 3. Create a new SQL database
-4. Import [delila_db.sql](./server/database/delila_db.sql)
+4. Import [delilah_db.sql](./server/database/delilah_db.sql)
 5. Set database credentials for `sequelize` in [queries.js](./server/queries.js)
 6. Set new timezone if required
 
