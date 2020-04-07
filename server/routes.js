@@ -422,7 +422,7 @@ const getOrders = async (request, response, next) => {
     }
 
     //check if valid offset number is requested, otherwise the default is 0
-    if (offset != undefined && !isNaN(offset) && offset >= 0) {
+    if (offset != undefined && !isNaN(offset) && offset.length > 0 && offset >= 0) {
 
         offset = parseInt(offset);
     } else {
@@ -460,7 +460,7 @@ const getOrderById = async (request, response, next) => {
 
     try {
 
-        order = await queries.getOneOrder(orderId, request.admin, request.userId);
+        order = await queries.getOneOrder(orderId, request.admin, request.userId, request.path);
 
     } catch (error) {
         return next(error);
@@ -513,7 +513,7 @@ const getSameUserOrders = async (request, response, next) => {
     }
 
     try {
-        
+
         let userOrders = await queries.getAllOrders(30, 0, false, false, admin, id);
         response.json({ data: userOrders });
 
